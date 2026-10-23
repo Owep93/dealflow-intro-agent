@@ -1,0 +1,11 @@
+name,email,company,role,topics,strength,source,owner_partner
+Nancy Coblenz,nancy@example.com,Stellenium,President,behind-the-meter power|data centers|energy,4,linkedin,Giulio
+Chad Tramonte,chad@example.com,DC Operations Group,Data Center Operator,data centers|operations|facilities,3,linkedin,Giulio
+Sarah Kim,sarah@example.com,CoreSite,VP Operations,data centers|operations|uptime,5,email,Giulio
+Marcus Lee,marcus@example.com,General Hospital Group,Head of Facilities,facilities|uptime|hospitals,4,email,Partner B
+Priya Nair,priya@example.com,RetailCo,VP Supply Chain,retail|logistics|operations,3,linkedin,Partner B
+Tom Becker,tom@example.com,CloudScale,CTO,cloud|infrastructure|data centers,2,email,Giulio
+Elena Rossi,elena@example.com,Hotel Group Roma,Director of Engineering,hotels|facilities|energy,3,linkedin,Partner C
+James Wright,james@example.com,LogiPort,COO,logistics|warehouses|energy cost,4,email,Partner B
+Dead End Dan,dan@example.com,OldCo,Manager,operations,2,email,Giulio
+Busy Beth,beth@example.com,BigCorp,VP Operations,operations|data centers,2,linkedin,Partner C
