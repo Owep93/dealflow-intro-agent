@@ -121,6 +121,41 @@
   .controls button.primary { background:var(--accent); color:#fff; border-color:var(--accent);
                              box-shadow:0 6px 14px rgba(36,86,214,.30); }
   .fineprint { text-align:center; color:var(--muted); font-size:12px; margin:14px 0 0; }
+
+  /* phone stage */
+  .phones { display:flex; gap:18px; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-top:4px; }
+  .phonewrap { display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .phonecap { font-size:11px; font-weight:800; letter-spacing:1.4px; color:var(--muted); }
+  .parrow { align-self:flex-start; margin-top:170px; font-size:20px; color:#9aa7b8; font-weight:700; }
+  @media (max-width:760px){ .parrow { display:none; } }
+  .phone { width:296px; background:#fff; border:3px solid #14181f; border-radius:40px; overflow:hidden;
+           box-shadow:0 16px 34px rgba(20,40,80,.16); }
+  .phone .notch { height:25px; display:flex; align-items:center; justify-content:space-between; padding:0 17px;
+                  font-size:11px; font-weight:700; }
+  .phone .notch i { width:72px; height:16px; background:#14181f; border-radius:9px; display:block; }
+  .phone .notch .sig { color:#14181f; letter-spacing:1px; }
+  .phead { display:flex; align-items:center; gap:9px; padding:9px 13px; border-bottom:1px solid var(--line); }
+  .phead .pav { flex:none; width:32px; height:32px; border-radius:50%; color:#fff; font-weight:800; font-size:12px;
+                display:flex; align-items:center; justify-content:center; }
+  .phead .nm { font-weight:700; font-size:13.5px; line-height:1.2; }
+  .phead .mt { color:var(--muted); font-size:11.5px; line-height:1.25; }
+  .pbody { padding:13px 12px 15px; display:flex; flex-direction:column; gap:8px; min-height:308px; }
+  .pbody .pill { align-self:center; background:#eef1f4; color:#5b6b7f; font-size:11px; font-weight:600;
+                 padding:4px 11px; border-radius:999px; }
+  .pb { max-width:87%; padding:8px 11px; border-radius:14px; font-size:13px; line-height:1.48;
+        background:#eef1f4; color:var(--ink); }
+  .pb.me { align-self:flex-end; background:#d9f2c2; }
+  .pb small { display:block; color:#7a8a6d; font-size:10.5px; margin-top:3px; }
+  .ptext { font-size:13px; line-height:1.52; padding:0 2px; }
+  .emailcard { border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:12.5px;
+               line-height:1.55; background:#fbfcfe; }
+  .emailcard .ek { font-size:10px; font-weight:800; letter-spacing:.8px; color:var(--muted); margin-bottom:4px; }
+  .emailcard .et { font-weight:700; margin-bottom:3px; }
+  .emailcard .await { color:var(--muted); font-size:11.5px; margin-top:5px; }
+  .pfoot { border-top:1px solid var(--line); padding:9px 13px; color:#9aa7b8; font-size:12.5px; }
+  .gfrom { display:flex; gap:9px; align-items:center; }
+  .gfrom .pav { flex:none; width:32px; height:32px; border-radius:50%; color:#fff; font-weight:800; font-size:12px;
+                display:flex; align-items:center; justify-content:center; }
   /* mockups */
   section.more { padding:44px 0 6px; }
   section.more h2.title { text-align:center; font-size:28px; margin:0 0 6px; letter-spacing:-.4px; }
@@ -217,16 +252,60 @@
   </div>
 
   <div class="panel" data-panel="1">
-    <h2>The need surfaces where the founder already talks.</h2>
-    <p class="lede">On Instinct, over WhatsApp: the combined picture, in one message, no new app to open.</p>
-    <div class="wa">
-      <div class="whead">Instinct &middot; Northstar Ventures assistant</div>
-      <div class="wbody">
-        <div class="b">Relay AI, combined from this week's updates: pilot live with Harbor Mutual, three more customers waiting on security and procurement reviews, and a first Solutions Engineer role open.<small>Scout &middot; signals combined</small></div>
-        <div class="b">The pattern points to one need: help turning pilots into paying customers, from someone who has navigated insurer security reviews.<small>Scout &middot; explicit, founder's own words attached</small></div>
-        <div class="b me">Find who in our network can help.<small>Partner</small></div>
-        <div class="b">On it. Scout is enriching Relay's profile, and Atlas is searching every partner's network, not just yours.<small>Introloop</small></div>
-      </div>
+    <h2>One introduction. Every step, in context.</h2>
+    <p class="lede">The entire conversation happens inside the phones. Sarah's partner view, Daniel's confirmation, and Maya's inbox, side by side.</p>
+    <div class="phones">
+      <div class="phonewrap"><div class="phonecap">SARAH &middot; VC PARTNER'S IPHONE</div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
+        <div class="phead"><div class="pav" style="background:#16294d">I</div>
+          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
+        <div class="pbody">
+          <span class="pill">Insurance deployments &middot; via Daniel</span>
+          <div class="pb">Relay AI, from this week's updates: Harbor Mutual pilot live, three customers waiting on security and procurement reviews, first Solutions Engineer role open. One need: help turning pilots into paying customers.<small>Scout &middot; three sources combined</small></div>
+          <div class="pb">Best route: <b>Maya Bennett</b>, VP Enterprise Sales at InsurTech Group. She is Daniel's contact, and she has navigated insurer security reviews twice.<small>Atlas &middot; score 12.2 &middot; uncertainty medium</small></div>
+          <div class="pb me">Let's connect Emma with Maya.<small>Sarah</small></div>
+          <div class="ptext">I've asked Daniel to confirm the connection.</div>
+          <div class="emailcard"><div class="ek">&#9993; ASK SENT &middot; TO DANIEL</div>
+            <div class="et">Can you connect us with Maya?</div>
+            Hi Daniel, Emma at Relay AI needs help with insurer security reviews. Would you be comfortable introducing her to Maya? Confirm and I'll ask Maya on your behalf.
+            <div class="await">Sent inside Daniel's Instinct &middot; Introloop</div></div></div>
+        <div class="pfoot">+ &nbsp;Message</div>
+      </div></div>
+      <div class="parrow">&#8594;</div>
+      <div class="phonewrap"><div class="phonecap">DANIEL &middot; IPHONE &middot; INSTINCT</div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
+        <div class="phead"><div class="pav" style="background:#16294d">I</div>
+          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
+        <div class="pbody">
+          <span class="pill">Introloop &middot; confirmation requested</span>
+          <div class="pb">Sarah wants to connect <b>Emma Davis</b> (Relay AI) with your contact <b>Maya Bennett</b>. Emma's pilots are waiting on insurer security and procurement reviews, and Maya has been through those reviews twice.<small>Introloop &middot; on Sarah's behalf</small></div>
+          <div class="pb">Maya is inside her consent envelope for insurer introductions, 1 of 2 used this month. If you confirm, I'll email Maya and Sarah makes the introduction.<small>Bridge &middot; fit and duplicate checks passed</small></div>
+          <div class="pb me">Confirmed. Maya is perfect for this. Go ahead and ask her.<small>Daniel</small></div>
+          <div class="ptext">Confirmed. Emailing Maya now, from you, and letting Sarah know.</div></div>
+        <div class="pfoot">+ &nbsp;Message</div>
+      </div></div>
+      <div class="parrow">&#8594;</div>
+      <div class="phonewrap"><div class="phonecap">MAYA &middot; IPHONE &middot; GMAIL</div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
+        <div class="phead"><div class="pav" style="background:#c5221f">G</div>
+          <div><div class="nm">Gmail</div><div class="mt">Inbox &middot; Maya Bennett</div></div></div>
+        <div class="pbody">
+          <div class="gfrom"><div class="pav" style="background:#e8710a">D</div>
+            <div><div class="nm" style="font-size:13.5px;font-weight:700">Daniel Brooks</div>
+            <div class="mt" style="color:var(--muted);font-size:11.5px">to me &middot; 10:02 AM</div></div></div>
+          <p style="margin:2px 0 0;font-size:13.5px"><b>Can I introduce you to Emma at Relay AI?</b></p>
+          <div class="ptext">Hi Maya, Emma at Relay AI needs help with insurer security reviews. Would you be comfortable introducing her to Sarah at Northstar, who will connect you both? You've done this twice at InsurTech Group, which is why I thought of you.</div>
+          <div class="emailcard"><div class="ek">&#9993; YOUR REPLY &middot; SENT</div>
+            <div class="et">Re: Can I introduce you to Emma at Relay AI?</div>
+            Happy to. Insurer security reviews were my last two roles. Introduce us.
+            <div class="await">Maya Bennett &middot; from her Gmail</div></div></div>
+        <div class="pfoot">+ &nbsp;Reply</div>
+      </div></div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -245,11 +324,11 @@
     <h2>Atlas finds the right route, in your inbox.</h2>
     <p class="lede">The whole firm's network searched. The best route runs through a colleague, and the card says so.</p>
     <div class="mail">
-      <div class="mhead"><b>From:</b> Atlas (Introloop)<br><b>Subject:</b> Relay AI: the right route is Maya Bennett, via Partner B</div>
+      <div class="mhead"><b>From:</b> Atlas (Introloop)<br><b>Subject:</b> Relay AI: the right route is Maya Bennett, via Daniel</div>
       <div class="mbody">
         <p><b>Recommended:</b> Maya Bennett, VP Enterprise Sales, InsurTech Group. She has sold AI software to insurers and navigated their security reviews twice.</p>
-        <p><b>Evidence and uncertainty:</b> score 12.2, LinkedIn record, relationship strength 4/5, owned by Partner B. Uncertainty: medium. She has no past intro outcomes yet, so her track record here is unproven, and this card does not pretend otherwise.</p>
-        <p><b>Consent:</b> Maya is inside her standing consent envelope for insurer introductions (1 of 2 used this month), so there is no permission round trip on her side. Your approval of this card is the only gate, and the draft routes to Partner B first, because it is his relationship.</p>
+        <p><b>Evidence and uncertainty:</b> score 12.2, LinkedIn record, relationship strength 4/5, owned by Daniel. Uncertainty: medium. She has no past intro outcomes yet, so her track record here is unproven, and this card does not pretend otherwise.</p>
+        <p><b>Consent:</b> Maya is inside her standing consent envelope for insurer introductions (1 of 2 used this month), so there is no permission round trip on her side. Your approval of this card is the only gate, and the draft routes to Daniel first, because it is his relationship.</p>
         <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See the evidence</span><span class="btn">Pass</span></div>
         <div class="chips"><span class="chip">fit check passed</span><span class="chip">no duplicate on file</span><span class="chip info">Akta sourced</span></div>
       </div>
@@ -257,31 +336,72 @@
   </div>
 
   <div class="panel" data-panel="4">
-    <h2>Bridge makes the introduction.</h2>
-    <p class="lede">Email only, sent after the partner approved the card. Nothing sends without that approval.</p>
-    <div class="mail">
-      <div class="mhead"><b>From:</b> Partner B, Northstar Ventures<br><b>To:</b> Emma Davis (Relay AI), Maya Bennett (InsurTech Group)<br><b>Subject:</b> Connecting you: Relay AI &times; Maya Bennett</div>
-      <div class="mbody">
-        <p>Emma, Maya: connecting you both.</p>
-        <p>Emma, Relay's pilots are waiting on insurer security and procurement reviews. Maya has sold AI software to insurers and navigated exactly those reviews at InsurTech Group, and she agreed to be introduced for precisely this.</p>
-        <p>Maya, Emma is Relay's founder. A short conversation on how you got enterprise deployments through security review would be directly useful this month.</p>
-        <p>I will let you two take it from here.</p>
-        <div class="chips"><span class="chip">partner approved</span><span class="chip">consent envelope: inside</span><span class="chip">prepared by Bridge</span></div>
-      </div>
+    <h2>Maya confirmed. Sarah makes the introduction.</h2>
+    <p class="lede">Two screens now: Sarah's Instinct on the left, and the email as it lands in Gmail on the right.</p>
+    <div class="phones">
+      <div class="phonewrap"><div class="phonecap">SARAH &middot; IPHONE &middot; INSTINCT</div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
+        <div class="phead"><div class="pav" style="background:#16294d">I</div>
+          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
+        <div class="pbody">
+          <div class="pb">Maya confirmed. She is happy to be introduced, and she said insurer security reviews were her last two roles.<small>Echo &middot; reply captured from Maya's Gmail</small></div>
+          <div class="pb">I've drafted the introduction email to Emma and Maya, from you. Nothing has been sent yet.<small>Bridge &middot; partner approval required</small></div>
+          <div class="pb me">Send it.<small>Sarah</small></div>
+          <div class="ptext">Sent. Emma and Maya both have it, and I'll follow up with each of them in two days.</div>
+          <div class="emailcard"><div class="ek">&#9993; EMAIL SENT &middot; FROM SARAH</div>
+            <div class="et">Connecting you: Relay AI &times; Maya Bennett</div>
+            To Emma Davis and Maya Bennett.
+            <div class="await">Delivered &middot; Introloop</div></div></div>
+        <div class="pfoot">+ &nbsp;Message</div>
+      </div></div>
+      <div class="parrow">&#8594;</div>
+      <div class="phonewrap"><div class="phonecap">GMAIL &middot; EMMA'S INBOX</div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
+        <div class="phead"><div class="pav" style="background:#c5221f">G</div>
+          <div><div class="nm">Gmail</div><div class="mt">Inbox &middot; Emma Davis</div></div></div>
+        <div class="pbody">
+          <div class="gfrom"><div class="pav" style="background:#7c5cd6">S</div>
+            <div><div class="nm" style="font-size:13.5px;font-weight:700">Sarah &middot; Northstar Ventures</div>
+            <div class="mt" style="color:var(--muted);font-size:11.5px">to Emma, Maya &middot; 10:20 AM</div></div></div>
+          <p style="margin:2px 0 0;font-size:13.5px"><b>Connecting you: Relay AI &times; Maya Bennett</b></p>
+          <div class="ptext">Emma, Maya: connecting you both.</div>
+          <div class="ptext">Emma, Relay's pilots are waiting on insurer security and procurement reviews. Maya has sold AI software to insurers and navigated exactly those reviews at InsurTech Group, and she agreed to be introduced for precisely this.</div>
+          <div class="ptext">Maya, Emma is Relay's founder. A short conversation on how you got enterprise deployments through security review would be directly useful this month.</div>
+          <div class="ptext">I'll let you two take it from here. Sarah</div></div>
+        <div class="pfoot">+ &nbsp;Reply</div>
+      </div></div>
+    </div>
+  </div>
     </div>
   </div>
 
   <div class="panel" data-panel="5">
-    <h2>Echo follows up, and the loop closes.</h2>
-    <p class="lede">Both sides are asked, so the outcome is known even if the founder forgets to report back.</p>
-    <div class="mail">
-      <div class="mhead"><b>From:</b> Echo (Introloop)<br><b>Subject:</b> Relay AI &times; Maya Bennett: connected, and it helped</div>
-      <div class="mbody">
-        <p>Emma and Maya spoke on Tuesday. Emma marked the help <b>useful</b>: Maya walked her through the security review packet Harbor Mutual expects, and Relay is reusing it for the other two pilots.</p>
-        <p><b>Scorecards updated:</b> Scout +10 (a need that resolved as useful), Atlas +5 (its pick connected), Echo +3 (outcome captured). The pattern is reinforced: the next insurer security review need will be actioned faster.</p>
-        <div class="chips"><span class="chip">connected: yes</span><span class="chip">useful: yes</span><span class="chip">PRISM trace: complete</span></div>
-        <div class="btns"><span class="btn">View scorecards</span><span class="btn">Weekly rollup</span></div>
-      </div>
+    <h2>Echo closes the loop, by email.</h2>
+    <p class="lede">Sarah's Instinct emails Emma to ask for feedback, and her answer, straight from Gmail, is what the system learns from.</p>
+    <div class="phones">
+      <div class="phonewrap"><div class="phonecap">SARAH &middot; IPHONE &middot; INSTINCT</div>
+      <div class="phone">
+        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
+        <div class="phead"><div class="pav" style="background:#16294d">I</div>
+          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
+        <div class="pbody">
+          <span class="pill">Three days after the introduction</span>
+          <div class="pb">Emma and Maya spoke on Tuesday. I've emailed Emma to ask how it went, so the outcome is recorded even if she forgets to report back.<small>Echo &middot; follow-through</small></div>
+          <div class="emailcard"><div class="ek">&#9993; EMAIL SENT &middot; TO EMMA DAVIS</div>
+            <div class="et">How did the conversation with Maya go?</div>
+            Hi Emma, quick check-in: was the introduction to Maya useful for the security reviews? A sentence is plenty, and it helps us make better connections for Relay.
+            <div class="await">Sent from Sarah's Instinct &middot; Introloop</div></div>
+          <div class="emailcard"><div class="ek">&#9993; EMMA REPLIED</div>
+            <div class="et">Re: How did the conversation with Maya go?</div>
+            It was useful. Maya walked me through the security packet Harbor Mutual expects, and we're reusing it for the other two pilots.
+            <div class="await">Emma Davis &middot; from her Gmail</div></div>
+          <div class="pb">Recorded: connected, and useful. Scorecards updated: Scout +10, Atlas +5, Echo +3.<small>PRISM trace complete</small></div></div>
+        <div class="pfoot">+ &nbsp;Message</div>
+      </div></div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -309,7 +429,7 @@
         <div class="cardbox">
           <div class="who">INTROLOOP BRIEFING &middot; OVERNIGHT</div>
           <b>Relay</b> needs help turning pilots into paying customers. Scout: explicit need,
-          founder's own words attached. Atlas: best match is <b>Maya Bennett</b> (Partner B's contact,
+          founder's own words attached. Atlas: best match is <b>Maya Bennett</b> (Daniel's contact,
           sold AI to insurers, score 12.2, uncertainty medium). Bridge: card ready.
           Maya is inside her consent envelope, so your approval is the only gate.
           <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See evidence</span><span class="btn">Pass</span></div>
@@ -326,7 +446,7 @@
           <div class="who">PRISM EVALUATION &middot; 6/6 CHECKS PASSED</div>
           Evidence: "Three potential customers are stuck in security and procurement reviews"
           (founder update, Oct 23). Relationship claim supported: LinkedIn record, strength 4/5,
-          owned by Partner B. Akta context: Relay, AI claims automation, 60 employees,
+          owned by Daniel. Akta context: Relay, AI claims automation, 60 employees,
           partnership live with Harbor Mutual.
           <div class="chips"><span class="chip">evidence verbatim</span><span class="chip">no unsupported claims</span><span class="chip">akta sourced</span></div>
         </div>
@@ -400,7 +520,7 @@
         <div class="msg agent"><div class="who">#PORTFOLIO-OPS &middot; INTROLOOP FEED</div>
           Giulio's intro worked: Sarah Kim (Northgate Retail) took the meeting with RouteWise.
           This week's rollup is pinned: 11 intros proposed, 4 meetings, 1 need resolved as useful.</div>
-        <div class="chips"><span class="chip">reply rate up</span><span class="chip">top connector: Partner B</span></div>
+        <div class="chips"><span class="chip">reply rate up</span><span class="chip">top connector: Daniel</span></div>
       </div>
       <p class="why">Why it matters: every partner sees the network working, so the whole firm's relationships compound instead of sitting in private inboxes.</p>
     </div>
@@ -415,7 +535,7 @@
           Maya Bennett, my contact at InsurTech Group. She has done this twice.</div>
         <div class="msg agent"><div class="who">ATLAS</div>
           Candidate saved with evidence and uncertainty noted. Bridge is preparing the card,
-          and the draft routes to Partner B for approval, since it is his relationship.</div>
+          and the draft routes to Daniel for approval, since it is his relationship.</div>
       </div>
       <p class="why">Why it matters: when the answer lives in a colleague's relationships, the agent asks the room instead of guessing.</p>
     </div>
@@ -444,11 +564,11 @@
 <script>
   var notes = [
     "Three sources. The founder's email makes the need explicit.",
-    "One message on the channel the founder already uses.",
+    "Three phones: Sarah's Instinct, Daniel's Instinct, Maya's Gmail.",
     "Scout's profile: context attached, need evidenced.",
     "Atlas searched the whole firm. The route runs through a colleague.",
-    "Bridge sends only after the partner approves.",
-    "Echo asked both sides. The outcome is recorded, not assumed."
+    "Maya confirmed. Sarah approves, the intro lands in Emma's Gmail.",
+    "Echo emails Emma for feedback. Her reply closes the loop."
   ];
   var cur = 0;
   var panels = document.querySelectorAll("[data-panel]");
