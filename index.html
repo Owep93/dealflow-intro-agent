@@ -1,594 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Introloop: Scattered updates. One useful connection.</title>
-<style>
-  :root { --ink:#131c29; --muted:#5b6b7f; --line:#e2e8f0; --bg:#eef2f7; --card:#ffffff;
-          --accent:#2456d6; --accent2:#16294d; --muse:#7c5cd6; --instinct:#0e9f6e; --dots:#e8590c;
-          --wa:#dcf8c6; --wahead:#075e54; --li:#0a66c2; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-         background:linear-gradient(180deg,#e8eef6 0,#f4f6f9 340px); color:var(--ink);
-         -webkit-font-smoothing:antialiased; }
-  .wrap { max-width:1120px; margin:0 auto; padding:0 20px; }
-  /* hero */
-  header.hero { padding:52px 24px 8px; text-align:center; }
-  .brand { display:inline-flex; align-items:center; gap:9px; font-size:16px; font-weight:800; letter-spacing:.2px; }
-  .brand .glyph { width:28px; height:28px; border-radius:9px; background:var(--accent); color:#fff;
-                  display:inline-flex; align-items:center; justify-content:center; font-size:17px; font-weight:900;
-                  box-shadow:0 4px 10px rgba(36,86,214,.35); }
-  .brand span { color:var(--accent); }
-  .brand small { display:block; font-weight:500; color:var(--muted); letter-spacing:0; margin-top:2px; }
-  .eyebrow { margin:30px 0 8px; font-size:12px; font-weight:700; letter-spacing:2.5px; color:var(--accent); }
-  header.hero h1 { margin:0 auto; font-size:44px; line-height:1.12; letter-spacing:-1px; max-width:760px; }
-  header.hero p.sub { color:var(--muted); max-width:640px; margin:14px auto 0; font-size:16.5px; line-height:1.55; }
-  .badge { display:inline-block; margin-top:16px; font-size:12.5px; font-weight:600; background:#fff;
-           color:var(--accent2); border:1px solid #cfdcf5; padding:6px 14px; border-radius:999px;
-           box-shadow:0 1px 3px rgba(20,40,80,.06); }
-  /* stepper */
-  .steps { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin:30px auto 18px; max-width:980px; }
-  .steps button { border:1px solid var(--line); background:#fff; border-radius:12px; padding:10px 12px;
-                  font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; text-align:left;
-                  display:flex; gap:9px; align-items:flex-start; box-shadow:0 1px 2px rgba(20,40,80,.04);
-                  transition:all .15s ease; }
-  .steps button:hover { border-color:#b9c9e8; transform:translateY(-1px); }
-  .steps button .n { flex:none; width:21px; height:21px; border-radius:50%; background:#e8eefc; color:var(--accent);
-                     font-size:12px; font-weight:800; display:inline-flex; align-items:center; justify-content:center; margin-top:1px; }
-  .steps button small { display:block; font-weight:500; color:var(--muted); font-size:11px; margin-top:2px; line-height:1.35; }
-  .steps button.on { background:var(--accent2); color:#fff; border-color:var(--accent2);
-                     box-shadow:0 8px 18px rgba(22,41,77,.25); }
-  .steps button.on .n { background:var(--accent); color:#fff; }
-  .steps button.on small { color:#a9bede; }
-  @media (max-width:860px){ .steps { grid-template-columns:repeat(3,1fr); } header.hero h1 { font-size:34px; } }
-  @media (max-width:520px){ .steps { grid-template-columns:repeat(2,1fr); } }
-  /* panels */
-  .panel { display:none; background:var(--card); border:1px solid var(--line); border-radius:20px;
-           box-shadow:0 18px 40px rgba(20,40,80,.10), 0 2px 6px rgba(20,40,80,.05);
-           padding:30px; max-width:980px; margin:0 auto; }
-  .panel.on { display:block; }
-  .panel h2 { margin:0 0 6px; font-size:23px; letter-spacing:-.3px; }
-  .panel .lede { color:var(--muted); margin:0 0 20px; font-size:14.5px; }
-  /* interface recreations */
-  .srcgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; }
-  .iface { border:1px solid var(--line); border-radius:14px; background:#fff; overflow:hidden;
-           box-shadow:0 4px 14px rgba(20,40,80,.06); font-size:13.5px; line-height:1.5; display:flex; flex-direction:column; }
-  .iface .srcbody { padding:13px 15px 12px; flex:1; }
-  .iface .k { font-size:10.5px; font-weight:700; letter-spacing:.7px; color:var(--muted); text-transform:uppercase; margin-bottom:9px; }
-  .ihead { display:flex; gap:10px; align-items:center; margin-bottom:9px; }
-  .avatar { flex:none; width:38px; height:38px; border-radius:50%; color:#fff; font-weight:800; font-size:13px;
-            display:flex; align-items:center; justify-content:center; }
-  .avatar.li { background:var(--li); border-radius:8px; }
-  .avatar.em { background:#5b5bd6; }
-  .avatar.jb { background:#0e7a5f; border-radius:8px; }
-  .ihead .nm { font-weight:700; font-size:14px; line-height:1.25; }
-  .ihead .mt { color:var(--muted); font-size:12px; line-height:1.3; }
-  .iface p { margin:6px 0; }
-  .iface ul { margin:6px 0 6px 17px; padding:0; }
-  .iface li { margin:3px 0; }
-  .iactions { display:flex; gap:16px; border-top:1px solid var(--line); margin-top:10px; padding-top:9px;
-              color:var(--muted); font-size:12px; font-weight:600; }
-  .apply { display:inline-block; margin-top:8px; font-size:12px; font-weight:700; color:#fff; background:#2557a7;
-           padding:5px 14px; border-radius:999px; }
-  .foot { font-size:11.5px; color:#43536a; background:#f6f8fb; border-top:1px solid var(--line);
-          padding:8px 15px; }
-  .combine { display:flex; gap:11px; align-items:center; background:var(--accent2); color:#eaf0fb;
-             border-radius:14px; padding:14px 18px; margin:18px 0 2px; font-size:14px; line-height:1.5;
-             box-shadow:0 10px 22px rgba(22,41,77,.22); }
-  .combine .agentchip { flex:none; background:var(--accent); color:#fff; font-size:11px; font-weight:800;
-                        letter-spacing:1px; padding:4px 10px; border-radius:999px; }
-  .combine b { color:#fff; }
-  /* mail + whatsapp recreations */
-  .mail { border:1px solid var(--line); border-radius:14px; overflow:hidden; box-shadow:0 4px 14px rgba(20,40,80,.06); }
-  .mail .mhead { background:linear-gradient(180deg,#f7fafc,#eef2f7); padding:13px 16px; font-size:13px;
-                 border-bottom:1px solid var(--line); line-height:1.65; }
-  .mail .mbody { padding:16px 18px; font-size:14px; line-height:1.65; }
-  .mail .mbody p { margin:8px 0; }
-  .wa { max-width:430px; margin:0 auto; border:1px solid var(--line); border-radius:18px; overflow:hidden;
-        box-shadow:0 10px 26px rgba(20,40,80,.12); }
-  .wa .whead { background:var(--wahead); color:#fff; padding:12px 15px; font-size:13.5px; font-weight:600;
-               display:flex; align-items:center; gap:9px; }
-  .wa .whead::before { content:""; width:30px; height:30px; border-radius:50%; background:#128c7e; flex:none; }
-  .wa .wbody { background:#ece5dd; padding:15px; display:flex; flex-direction:column; gap:8px; }
-  .wa .b { max-width:85%; padding:9px 12px; border-radius:10px; font-size:13.5px; line-height:1.5; background:#fff;
-           box-shadow:0 1px 2px rgba(0,0,0,.10); }
-  .wa .b.me { align-self:flex-end; background:var(--wa); }
-  .wa .b small { display:block; color:#7a8a6d; font-size:11px; margin-top:3px; }
-  .wa .b.me small { text-align:right; }
-  /* profile cells */
-  .kv { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:13px; }
-  .kv .cell { border:1px solid var(--line); border-radius:14px; padding:14px 16px; background:#fbfcfe;
-              font-size:13.5px; line-height:1.6; box-shadow:0 2px 8px rgba(20,40,80,.04); }
-  .kv .cell .k { font-size:11px; font-weight:700; letter-spacing:.7px; color:var(--accent);
-                 text-transform:uppercase; margin-bottom:5px; }
-  /* shared bits */
-  .btns { display:flex; gap:8px; margin-top:13px; flex-wrap:wrap; }
-  .btn { font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:9px; border:1px solid var(--line);
-         background:#fff; box-shadow:0 1px 2px rgba(20,40,80,.05); }
-  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
-  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .chip { font-size:11.5px; font-weight:600; background:#eef7ee; border:1px solid #cfe6cf; color:#2c5d2c;
-          padding:3px 9px; border-radius:999px; }
-  .chip.warn { background:#fdeeee; border-color:#f2caca; color:#8a2b2b; }
-  .chip.info { background:#e8eefc; border-color:#c9d7f8; color:var(--accent); }
-  .controls { display:flex; align-items:center; justify-content:space-between; max-width:980px; margin:18px auto 0; }
-  .controls .note { color:var(--muted); font-size:13px; text-align:center; flex:1; padding:0 12px; }
-  .controls .note #pos { font-weight:700; color:var(--ink); }
-  .controls button { border:1px solid var(--line); background:#fff; border-radius:10px; padding:9px 18px;
-                     font-size:13.5px; font-weight:600; cursor:pointer; box-shadow:0 1px 2px rgba(20,40,80,.05); }
-  .controls button:disabled { opacity:.4; cursor:default; }
-  .controls button.primary { background:var(--accent); color:#fff; border-color:var(--accent);
-                             box-shadow:0 6px 14px rgba(36,86,214,.30); }
-  .fineprint { text-align:center; color:var(--muted); font-size:12px; margin:14px 0 0; }
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Introdesk: scattered startup updates become useful introductions, right inside an investor’s email."><title>Introdesk — The right connection, in your inbox</title><style>
+:root{--ink:#25252b;--muted:#77737c;--line:#e9e6eb;--paper:#fff;--bg:#f8f7f9;--accent:#6854a3;--purple:#f0eaf9;--green:#497d52;--softgreen:#e9f2e6;--blue:#0a66c2;--gmail:#f6f8fc}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--bg);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}button:focus-visible,a:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid #b5a2d9;outline-offset:3px}button{color:inherit}header.app{height:67px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:0 35px;background:white;gap:15px}.brand{font-size:21px;font-weight:700;letter-spacing:-.8px}.brand span{color:var(--accent)}.brand small{font-size:11px;color:var(--muted);letter-spacing:0;font-weight:400;margin-left:14px}.topright{display:flex;align-items:center;gap:15px;font-size:11px;color:var(--muted)}.plain{padding:5px;border:0;background:none;color:var(--muted);font-size:12px}.plain:hover{color:var(--accent)}main{max-width:1440px;margin:auto;padding:24px 30px 20px}.intro{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:22px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:700;color:var(--accent);margin-bottom:7px}h1{font-size:31px;letter-spacing:-1.1px;line-height:1.15;margin:0;font-weight:650}.sub{font-size:13px;color:var(--muted);margin:8px 0 0}.badge{font-size:10px;background:#f2eff5;color:#71617e;padding:4px 8px;border-radius:5px;display:inline-block;font-weight:600;white-space:nowrap}.badge.green{background:var(--softgreen);color:var(--green)}.badge.blue{background:#edf4fc;color:var(--blue)}.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:21px}.nav button{background:transparent;border:0;border-bottom:2px solid #dfdbe4;padding:12px 6px;display:flex;align-items:center;gap:9px;text-align:left;color:#8a8490;font-size:12px;font-weight:600}.nav .num{border:1px solid #ddd7e4;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font-size:10px;background:var(--bg);flex-shrink:0}.nav button.active{color:var(--accent);border-bottom-color:var(--accent)}.nav button.active .num{color:white;background:var(--accent);border-color:var(--accent)}.nav small{display:block;font-weight:400;font-size:10px}.stage-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:15px}.stage-heading h2{font-size:18px;font-weight:600;letter-spacing:-.35px;margin:0}.agent{font-size:11px;color:var(--muted)}.agent strong{color:var(--accent);font-weight:650}.surface{animation:enter .22s ease}.sources{display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:17px;align-items:start}.source-window{background:white;border:1px solid #e2e1e5;border-radius:11px;overflow:hidden;box-shadow:0 6px 22px #28233105;min-height:493px}.window-label{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-bottom:1px solid var(--line);font-size:10px;color:#777;background:#fdfdfd}.li-logo{display:inline-block;background:#0a66c2;color:white;border-radius:2px;font-size:18px;line-height:23px;width:24px;height:24px;text-align:center;font-weight:750}.li-top{display:flex;align-items:center;gap:10px;padding:11px 14px;background:white;border-bottom:1px solid #e8e8e8}.fake-search{background:#eef3f8;color:#647380;border-radius:4px;flex:1;padding:6px 9px;font-size:11px}.li-post{margin:13px;border:1px solid #e1e1e1;border-radius:7px;overflow:hidden}.person{display:flex;align-items:center;gap:9px}.avatar{width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:#e7e1ef;color:#78618f;font-size:11px;font-weight:650;flex-shrink:0}.avatar.relay{background:#273d4c;color:#fff;border-radius:7px;font-size:20px}.person strong{font-size:12px;display:block;font-weight:600}.person small{font-size:10px;color:var(--muted);display:block}.li-person{padding:13px 12px 9px}.li-copy{font-size:12px;padding:0 12px 14px}.li-copy p{margin:0 0 10px}.li-copy p:last-child{margin:0}.li-art{height:131px;background:#ecf2f5;padding:23px 18px;display:flex;align-items:center;gap:14px;color:#263e4f}.li-art .cross{font-size:22px;color:#8ba0ac}.li-art strong{font-size:16px;letter-spacing:-.4px}.li-art small{display:block;font-size:10px;margin-top:5px;color:#697e89}.li-count{padding:8px 11px;color:#777;font-size:9px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}.li-actions{display:flex;justify-content:space-around;padding:10px 3px;font-size:10px;color:#666}.m-logo{font-weight:750;font-size:22px;letter-spacing:-2px;color:#d84e43;margin-right:4px}.gmail-word{color:#666;font-size:18px}.mail-preview-head{background:#f6f8fc;padding:10px 15px;display:flex;gap:7px;align-items:center;border-bottom:1px solid #eee}.source-email{padding:18px}.source-email h3{font-size:17px;font-weight:500;letter-spacing:-.4px;margin:0 0 18px}.source-email .person{margin-bottom:17px}.email-copy{font-size:12px;line-height:1.65}.email-copy p{margin:0 0 13px}.email-copy ul{padding-left:18px;margin:0 0 14px}.email-copy mark{background:#fbf0ca;color:inherit;padding:2px}.indeed-top{padding:15px;border-bottom:1px solid #e4e4e4;display:flex;justify-content:space-between;align-items:center}.indeed{font-weight:750;font-size:24px;letter-spacing:-1px;color:#2557a7}.indeed-top span{font-size:10px;color:#777}.job-search{padding:10px 13px;display:flex;gap:7px;background:#fafafa;border-bottom:1px solid #eee;font-size:10px}.job-search div{border:1px solid #d9d9d9;border-radius:6px;padding:7px 8px;flex:1;color:#555;background:white}.job{padding:18px}.job h3{font-size:19px;line-height:1.25;letter-spacing:-.4px;margin:10px 0 8px}.job .company{font-size:12px;margin-bottom:5px}.job .location{font-size:11px;color:#666}.job .types{display:flex;gap:5px;margin:13px 0}.job .types span{font-size:10px;background:#f2f2f2;border-radius:4px;padding:3px 7px}.apply{background:#2557a7;color:white;border:0;border-radius:7px;padding:9px 15px;font-size:11px;font-weight:650;display:inline-block}.job hr{border:0;border-top:1px solid #eee;margin:17px 0}.job h4{font-size:12px;margin:0 0 7px}.job ul{padding-left:17px;font-size:11px;line-height:1.7;color:#555;margin:0}.source-foot{font-size:10px;padding:10px 14px;background:#fcfbfd;color:#8a8290;border-top:1px solid var(--line)}.under-note{display:flex;justify-content:space-between;gap:15px;margin-top:14px;font-size:11px;color:var(--muted)}.under-note strong{color:#63546e;font-weight:600}.btn{border:1px solid #ded8e6;background:white;border-radius:7px;padding:9px 13px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:7px}.btn:hover{background:#f5f1fa}.btn.primary{background:var(--accent);border-color:var(--accent);color:white}.btn.primary:hover{background:#58458d}.btn.gmail-blue{background:#0b57d0;border-color:#0b57d0;color:white;border-radius:20px;padding:10px 19px}.btn.small{font-size:10px;padding:6px 9px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:16px}.bottom-bar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:19px 0 10px}.caption{font-size:12px;color:var(--muted)}.caption b{font-weight:650;color:var(--accent);margin-right:9px}.controls{display:flex;gap:9px;flex-shrink:0}.tiny-footer{display:flex;justify-content:space-between;font-size:10px;color:#8b8590;border-top:1px solid var(--line);padding-top:13px;gap:15px}.db{border:1px solid var(--line);border-radius:13px;overflow:hidden;background:white;min-height:495px}.db-top{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between}.db-title{font-size:17px;font-weight:500;font-family:Georgia,serif}.db-title span{background:var(--softgreen);border-radius:6px;padding:5px;margin-right:8px;font-size:13px}.db-tabs{display:flex;padding:13px 12px 0;gap:7px;border-bottom:1px solid var(--line)}.db-tab{background:none;border:0;border-radius:5px 5px 0 0;padding:9px 11px;color:#817886;font-size:11px}.db-tab.active{background:#f8f6f8;color:#3d3543}.db-toolbar{padding:10px 19px;background:#faf8fa;border-bottom:1px solid var(--line);font-size:10px;color:#8a818f;display:flex;justify-content:space-between;gap:10px}.db-split{display:grid;grid-template-columns:minmax(0,1fr) 335px;min-height:366px}.table-scroll{overflow-x:auto}.portfolio-table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:11px}.portfolio-table th{text-align:left;font-size:9px;font-weight:500;padding:12px;border-bottom:1px solid var(--line);border-right:1px solid #f4f1f5;color:#5b5362}.portfolio-table td{padding:14px 12px;border-bottom:1px solid #f2eff4;border-right:1px solid #f7f5f8}.portfolio-table tr.selected{background:#faf7ff}.portfolio-table button{border:0;padding:0;background:transparent;text-align:left;display:flex;align-items:center;gap:9px}.portfolio-table .domain{font-size:9px;color:#9a929e}.portfolio-table .logo{width:26px;height:26px;border-radius:7px;background:#e8e4ec;color:#776889;display:grid;place-items:center;font-weight:700;font-size:13px}.portfolio-table .logo.r{background:#273d4c;color:white}.stage-label{background:#e3eddf;color:#536c4e;padding:4px 7px;border-radius:4px;font-size:9px}.profile-panel{border-left:1px solid var(--line);padding:20px;background:#fff;overflow:hidden}.profile-panel h3{font-size:21px;font-weight:500;margin:8px 0 3px;letter-spacing:-.5px}.profile-panel .blurb{font-size:11px;color:var(--muted);margin:10px 0 17px}.detail-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#9a8ca4;margin:16px 0 7px}.priority{background:#f6f2fa;border-radius:8px;padding:12px;font-size:12px;line-height:1.5}.priority small{display:block;color:#8b7b97;font-size:10px;margin-top:6px}.detail-row{display:flex;gap:10px;justify-content:space-between;border-bottom:1px solid #f1edf4;padding:9px 0;font-size:10px}.detail-row span{color:#8a8092}.detail-row b{font-weight:500;text-align:right}.chip-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}.chip{font-size:9px;padding:4px 7px;border-radius:4px;background:#f0edf4;color:#857292}.profile-panel details{font-size:10px;margin-top:13px}.profile-panel summary{cursor:pointer;color:var(--accent)}.profile-panel details p{font-size:11px;line-height:1.5;color:#766982}.profile-update{padding:9px 14px;background:#f8fbf6;border-top:1px solid #e7ede3;color:#638052;font-size:10px}.gmail{background:var(--gmail);border:1px solid #e0e5ed;border-radius:13px;overflow:hidden;position:relative;min-height:530px}.gmail-top{height:61px;display:flex;align-items:center;gap:15px;padding:10px 19px}.gmail-brand{width:165px;display:flex;align-items:center;gap:10px;flex-shrink:0}.hamburger{font-size:17px;color:#5f6368;margin-right:7px}.gmail-search{background:#eaf1fb;border-radius:25px;height:39px;display:flex;align-items:center;flex:1;color:#7c838d;font-size:12px;padding:0 18px;max-width:650px}.gmail-user{margin-left:auto;background:#d8e5d4;color:#43613c;height:29px;width:29px;border-radius:50%;display:grid;place-items:center;font-size:10px}.gmail-layout{display:grid;grid-template-columns:180px minmax(0,1fr);min-height:465px}.gmail-side{padding:10px 12px;font-size:11px;color:#53565b}.compose{background:#c4e7ff;border-radius:14px;font-size:12px;padding:15px 17px;margin:0 0 14px;display:inline-block;color:#173b52}.folder{padding:7px 14px;border-radius:20px;display:flex;justify-content:space-between;margin-bottom:2px}.folder.selected{background:#d3e3fd;color:#12366b;font-weight:600}.gmail-main{background:white;border-radius:13px 0 0 0;position:relative;min-width:0;overflow:hidden}.mail-toolbar{height:42px;padding:11px 19px;border-bottom:1px solid #eff0f2;color:#6f747a;font-size:12px;display:flex;justify-content:space-between}.inbox-tabs{display:flex;border-bottom:1px solid #e6e9ef}.inbox-tabs span{padding:14px 23px;font-size:11px;color:#777}.inbox-tabs .active{color:#0b57d0;border-bottom:2px solid #0b57d0}.inbox-row{display:grid;grid-template-columns:25px 120px minmax(0,1fr) 55px;gap:7px;padding:13px 16px;border-bottom:1px solid #edf0f3;font-size:11px;align-items:center;background:#f4f7fc}.inbox-row.unread{font-weight:600;background:white}.inbox-row .subject{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inbox-row time{text-align:right;font-size:9px;color:#72767b}.gmail.inbox .gmail-main{min-height:550px}.atlas-popup{position:absolute;right:25px;bottom:20px;width:390px;background:white;border:1px solid #ddd3ea;box-shadow:0 18px 55px #4a3c6826;border-radius:13px;z-index:2;overflow:hidden}.popup-head{background:#f8f4fc;padding:13px 16px;display:flex;gap:9px;align-items:center;border-bottom:1px solid #ece5f4;font-size:11px}.agent-orb{width:26px;height:26px;border-radius:8px;background:#e9def5;color:var(--accent);display:grid;place-items:center;font-size:14px}.popup-head strong{font-weight:650}.popup-head small{font-size:9px;color:#94839f;display:block}.popup-body{padding:17px}.popup-body h3{font-size:17px;line-height:1.3;font-weight:600;letter-spacing:-.4px;margin:0 0 9px}.popup-body p{font-size:11px;line-height:1.6;color:#746b7c;margin:0 0 12px}.contact-match{border:1px solid var(--line);border-radius:9px;padding:12px;margin:13px 0}.contact-match .person small{font-size:10px}.path{font-size:10px;background:#f6f3f8;padding:7px 9px;border-radius:5px;margin-top:10px;color:#776583}.match-note{font-size:10px;color:#8c7c96;margin-top:8px}.proof-links{display:flex;gap:11px;flex-wrap:wrap}.proof-links button{border:0;background:none;color:var(--accent);font-size:10px;padding:0;text-decoration:underline;text-underline-offset:3px}.popup-body .actions{margin-top:14px}.popup-body .actions .btn{font-size:11px}.statusline{font-size:10px;color:var(--green);background:#eef5eb;border-radius:6px;padding:9px;margin:10px 0}.email-subject{font-size:21px;letter-spacing:-.4px;font-weight:400;margin:0 0 20px}.thread{padding:23px 31px;max-width:850px}.thread .person{margin-bottom:18px}.thread .email-copy{font-size:13px;line-height:1.7;padding-left:42px}.thread .email-copy p{margin:0 0 15px}.thread .email-copy .actions{padding-top:4px}.thread-status{padding:9px 13px;background:#eef5eb;color:#557a49;font-size:11px;border-radius:6px;margin:0 0 17px}.reply{display:flex;gap:10px;border-top:1px solid #eee;padding:15px 0;font-size:11px;margin-top:15px}.reply .avatar{width:27px;height:27px}.reply p{margin:4px 0 0;color:#6a6470}.email-draft{width:100%;min-height:165px;border:1px solid #e2dce8;border-radius:7px;padding:12px;color:#443e4a;line-height:1.65;font-size:12px;resize:vertical;background:#fff}.feedback-choices{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.feedback-choices .btn{font-size:11px}.feedback-choices .btn.selected{background:#f0e9f8;color:var(--accent);border-color:#c5b4df}.feedback-note{min-height:68px;margin-top:8px}.feedback-label{font-size:11px;display:block;margin-top:13px}.echo-result{padding:14px;background:#f2f7ef;border-radius:9px;margin-top:17px;font-size:12px}.echo-result strong{color:#507647}.echo-result p{font-size:11px;margin:5px 0 0;color:#6b7a63}.echo-result .actions{margin-top:10px}.note{font-size:10px;color:#968a9f;margin-top:12px}.profile-link{border:0;background:none;color:var(--accent);text-decoration:underline;text-underline-offset:3px;padding:0;font-size:11px}.dialog{border:1px solid #ddd4e7;border-radius:15px;padding:24px;width:min(580px,92vw);color:var(--ink);box-shadow:0 20px 80px #21182d33}.dialog::backdrop{background:#251c333f}.dialog h2{font-size:20px;font-weight:550;margin:0 0 16px;letter-spacing:-.4px}.close{float:right;border:0;background:#f4f0f7;border-radius:6px;width:26px;height:26px;font-size:17px;color:#8f819c}.dialog p{font-size:12px;line-height:1.65;color:#72647d}.dialog blockquote{border-left:2px solid #c9b9da;background:#faf7fd;padding:12px;margin:13px 0;font-size:12px;color:#6a5c75}.dialog .row{display:flex;justify-content:space-between;font-size:11px;border-top:1px solid var(--line);padding:11px 0;gap:15px}.dialog .row span{color:#93879d}.dialog .row b{font-weight:500;text-align:right}.network-person{padding:12px;border:1px solid var(--line);border-radius:8px;margin:10px 0}.network-person .person{margin:0}.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#4a3d5b;color:white;padding:12px 18px;border-radius:9px;font-size:12px;box-shadow:0 8px 35px #291b3d22;z-index:10}.hidden{display:none!important}.mobile-preview-label{display:none}@keyframes enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@media(max-width:1100px){main{padding:22px}.db-split{grid-template-columns:minmax(0,1fr) 300px}.atlas-popup{right:18px}.sources{gap:12px}.source-email{padding:15px}.gmail-brand{width:145px}.gmail-layout{grid-template-columns:160px 1fr}.inbox-row{grid-template-columns:20px 100px minmax(0,1fr) 45px}}@media(max-width:850px){.sources{grid-template-columns:1fr}.source-window{min-height:0;max-width:650px;width:100%;margin:auto}.li-art{height:100px}.gmail-layout{grid-template-columns:1fr}.gmail-side{display:none}.gmail-brand{width:auto}.gmail-search{margin-left:10px}.gmail{min-height:550px}.atlas-popup{right:17px;bottom:20px;width:min(390px,calc(100% - 34px))}.db-split{grid-template-columns:1fr}.profile-panel{border-left:0;border-top:1px solid var(--line)}.db{min-height:0}.table-scroll{max-height:260px}.sources .window-label{padding:10px 15px}.source-email .email-copy{font-size:13px}.job ul{font-size:12px}.li-copy{font-size:13px}.nav button{font-size:11px}.nav{gap:4px}.nav small{display:none}.thread{padding:23px}.thread .email-copy{padding-left:0}.under-note{flex-direction:column;gap:5px}}@media(max-width:540px){header.app{height:60px;padding:0 17px}.brand small{display:none}.topright{gap:10px;font-size:9px}main{padding:21px 13px 15px}h1{font-size:28px}.intro{display:block;margin-bottom:15px}.intro>.badge{margin-top:12px}.sub{font-size:12px}.nav button{flex-direction:column;gap:6px;text-align:center;font-size:9px;line-height:1.3;padding:9px 2px}.nav .num{height:21px;width:21px}.nav{margin-bottom:17px}.stage-heading h2{font-size:16px}.stage-heading .agent{font-size:9px}.gmail-top{padding:10px 12px;gap:8px}.gmail-brand .hamburger{display:none}.gmail-word{font-size:16px}.gmail-search{font-size:10px;padding:0 12px;margin-left:0}.gmail-user{height:25px;width:25px}.m-logo{font-size:20px}.gmail{min-height:610px}.atlas-popup{bottom:16px;right:10px;width:calc(100% - 20px)}.inbox-row{grid-template-columns:15px 78px minmax(0,1fr) 38px;padding:12px 9px;font-size:10px;gap:5px}.inbox-tabs span{padding:12px 15px;font-size:10px}.popup-body h3{font-size:17px}.thread{padding:18px 14px}.email-subject{font-size:18px;line-height:1.35}.thread .email-copy{font-size:12px}.bottom-bar{align-items:center;gap:10px}.caption{font-size:10px;max-width:49%}.caption b{display:block}.controls .btn{font-size:11px;padding:8px 10px}.tiny-footer{font-size:9px;flex-direction:column;gap:5px}.db-title{font-size:16px}.profile-panel{padding:17px}.portfolio-table td{padding:12px 9px}.db-tabs{gap:0}.db-tab{font-size:10px;padding:9px}.source-foot{font-size:9px}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}@media print{.nav,.controls,.topright,.tiny-footer{display:none}body{background:white}.gmail{border:1px solid #ddd}.atlas-popup{box-shadow:none}}
 
-  /* phone stage */
-  .phones { display:flex; gap:18px; justify-content:center; align-items:flex-start; flex-wrap:wrap; margin-top:4px; }
-  .phonewrap { display:flex; flex-direction:column; align-items:center; gap:9px; }
-  .phonecap { font-size:11px; font-weight:800; letter-spacing:1.4px; color:var(--muted); }
-  .parrow { align-self:flex-start; margin-top:170px; font-size:20px; color:#9aa7b8; font-weight:700; }
-  @media (max-width:760px){ .parrow { display:none; } }
-  .phone { width:296px; background:#fff; border:3px solid #14181f; border-radius:40px; overflow:hidden;
-           box-shadow:0 16px 34px rgba(20,40,80,.16); }
-  .phone .notch { height:25px; display:flex; align-items:center; justify-content:space-between; padding:0 17px;
-                  font-size:11px; font-weight:700; }
-  .phone .notch i { width:72px; height:16px; background:#14181f; border-radius:9px; display:block; }
-  .phone .notch .sig { color:#14181f; letter-spacing:1px; }
-  .phead { display:flex; align-items:center; gap:9px; padding:9px 13px; border-bottom:1px solid var(--line); }
-  .phead .pav { flex:none; width:32px; height:32px; border-radius:50%; color:#fff; font-weight:800; font-size:12px;
-                display:flex; align-items:center; justify-content:center; }
-  .phead .nm { font-weight:700; font-size:13.5px; line-height:1.2; }
-  .phead .mt { color:var(--muted); font-size:11.5px; line-height:1.25; }
-  .pbody { padding:13px 12px 15px; display:flex; flex-direction:column; gap:8px; min-height:308px; }
-  .pbody .pill { align-self:center; background:#eef1f4; color:#5b6b7f; font-size:11px; font-weight:600;
-                 padding:4px 11px; border-radius:999px; }
-  .pb { max-width:87%; padding:8px 11px; border-radius:14px; font-size:13px; line-height:1.48;
-        background:#eef1f4; color:var(--ink); }
-  .pb.me { align-self:flex-end; background:#d9f2c2; }
-  .pb small { display:block; color:#7a8a6d; font-size:10.5px; margin-top:3px; }
-  .ptext { font-size:13px; line-height:1.52; padding:0 2px; }
-  .emailcard { border:1px solid var(--line); border-radius:12px; padding:10px 12px; font-size:12.5px;
-               line-height:1.55; background:#fbfcfe; }
-  .emailcard .ek { font-size:10px; font-weight:800; letter-spacing:.8px; color:var(--muted); margin-bottom:4px; }
-  .emailcard .et { font-weight:700; margin-bottom:3px; }
-  .emailcard .await { color:var(--muted); font-size:11.5px; margin-top:5px; }
-  .pfoot { border-top:1px solid var(--line); padding:9px 13px; color:#9aa7b8; font-size:12.5px; }
-  .gfrom { display:flex; gap:9px; align-items:center; }
-  .gfrom .pav { flex:none; width:32px; height:32px; border-radius:50%; color:#fff; font-weight:800; font-size:12px;
-                display:flex; align-items:center; justify-content:center; }
-  /* mockups */
-  section.more { padding:44px 0 6px; }
-  section.more h2.title { text-align:center; font-size:28px; margin:0 0 6px; letter-spacing:-.4px; }
-  section.more p.sub { text-align:center; color:var(--muted); margin:0 auto 8px; max-width:660px; font-size:15px; line-height:1.55; }
-  .platform { display:flex; align-items:center; gap:12px; margin:30px 0 4px; }
-  .dot { width:14px; height:14px; border-radius:50%; flex:none; }
-  .platform h3 { margin:0; font-size:22px; }
-  .platform p { margin:0; color:var(--muted); font-size:14px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-top:16px; }
-  .mock { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;
-          box-shadow:0 8px 22px rgba(20,40,80,.07); display:flex; flex-direction:column; }
-  .mock .bar { color:#fff; font-size:12px; font-weight:700; letter-spacing:.6px; padding:9px 14px; text-transform:uppercase; }
-  .mock h4 { margin:14px 16px 4px; font-size:16.5px; }
-  .mock .body { padding:6px 16px 12px; font-size:13.5px; line-height:1.6; flex:1; }
-  .msg { border-radius:12px; padding:10px 13px; margin:8px 0; }
-  .msg.user { background:#e8eefc; }
-  .msg.agent { background:#f4f7fb; border:1px solid var(--line); }
-  .msg.sys { background:#fff8ec; border:1px solid #f0e2c4; }
-  .who { font-size:10.5px; font-weight:800; letter-spacing:.8px; color:var(--muted); margin-bottom:5px; }
-  .cardbox { background:#f8fafc; border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin:8px 0; }
-  .why { border-top:1px solid var(--line); margin:0; padding:11px 16px 14px; font-size:12.5px; color:var(--muted);
-         line-height:1.5; background:#fbfcfe; }
-  footer { text-align:center; color:var(--muted); font-size:12.5px; line-height:1.7; padding:34px 20px 40px; }
-</style>
-</head>
-<body>
+.nav{grid-template-columns:repeat(6,1fr)}.wa-stage{display:flex;flex-direction:column;align-items:center;padding:8px 0 15px}.wa-replay{align-self:center;margin-bottom:12px;font-size:11px;color:#82728e}.phone{width:350px;height:655px;border-radius:43px;border:7px solid #232323;background:#f9fafb;box-shadow:0 14px 45px #26202f19;overflow:hidden;position:relative;max-width:100%}.phone-status{height:38px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:12px 23px 5px;font-size:11px;font-weight:650;color:#111}.island{height:19px;width:83px;background:#111;border-radius:20px;position:absolute;top:8px;left:50%;transform:translateX(-50%)}.phone-status span:last-child{font-size:9px}.wa-header{height:65px;background:#fff;border-bottom:1px solid #e7ece9;display:flex;align-items:center;padding:9px 14px;gap:10px;color:#1b5c45}.wa-back{font-size:25px;font-weight:300;line-height:1}.wa-avatar{height:35px;width:35px;border-radius:50%;display:grid;place-items:center;background:#f1f3f1;color:#253d30;font:26px Georgia,serif}.wa-name{font-size:14px;color:#222;font-weight:650;line-height:1.4}.wa-name small{display:block;color:#7d8981;font-size:9px;font-weight:400}.wa-call{margin-left:auto;color:#398264;font-size:17px;letter-spacing:7px}.wa-chat{height:482px;overflow-y:auto;padding:14px 12px 16px;background:#f9faf9;scrollbar-width:thin}.wa-day{font-size:9px;color:#8c978e;text-align:center;padding:3px 0 15px}.wa-message{max-width:94%;background:#fff;border:1px solid #e5ebe6;border-radius:0 12px 12px 12px;padding:11px 12px;font-size:12px;line-height:1.55;color:#2d3c33;box-shadow:0 2px 4px #283b2b04;animation:wa-pop .3s ease;position:relative}.wa-message p{margin:0 0 8px}.wa-message p:last-of-type{margin-bottom:0}.wa-time{text-align:right;display:block;font-size:8px;color:#96a298;margin-top:6px}.wa-option{width:100%;border:1px solid #d8e6dc;background:#f6faf7;padding:9px 10px;border-radius:7px;text-align:left;margin-top:8px;display:flex;gap:8px;align-items:center;color:#2b4d37}.wa-option strong{display:block;font-size:11px;font-weight:600}.wa-option small{display:block;font-size:9px;color:#829387;line-height:1.45}.wa-option .avatar{width:27px;height:27px;background:#e8f0e7;color:#637c60;font-size:9px}.wa-option:hover,.wa-option.auto-hover{border-color:#64a77d;background:#eaf5ec}.wa-option:disabled{opacity:1;cursor:default}.wa-option.chosen{background:#e2f0df;border-color:#6fa56f}.wa-outgoing{margin:13px 0 13px auto;max-width:85%;background:#d9fdd3;border:0;border-radius:12px 0 12px 12px;box-shadow:0 1px 2px #23472712}.wa-outgoing .wa-time{color:#729b74}.wa-reply{margin-top:9px}.wa-composer{height:51px;display:flex;gap:9px;align-items:center;padding:6px 12px 13px;background:#f5f7f5;color:#7c8c80;font-size:22px}.wa-input{flex:1;border:1px solid #e0e7e1;background:#fff;border-radius:20px;padding:7px 12px;color:#b1b9b3;font-size:11px}.phone-home{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);height:4px;width:110px;background:#202020;border-radius:3px}.wa-typing{display:flex;align-items:center;gap:4px;width:45px;padding:10px 12px;border-radius:10px;background:white;border:1px solid #e7ece8;margin:8px 0}.wa-typing i{height:4px;width:4px;background:#a4b5a7;border-radius:50%;animation:wa-dot .8s infinite}.wa-typing i:nth-child(2){animation-delay:.15s}.wa-typing i:nth-child(3){animation-delay:.3s}.wa-cursor{position:absolute;right:20px;bottom:66px;color:#1d3926;filter:drop-shadow(0 2px 2px #fff);font-size:25px;pointer-events:none;animation:wa-cursor .8s ease both;z-index:3}.wa-note{font-size:10px;color:#94899b;margin-top:12px;text-align:center}.wa-chat:empty{min-height:480px}@keyframes wa-pop{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}@keyframes wa-dot{50%{opacity:.3;transform:translateY(-2px)}}@keyframes wa-cursor{from{opacity:0;transform:translate(17px,18px)}to{opacity:1;transform:translate(0,0)}}@media(max-width:540px){.nav{gap:3px}.nav button{font-size:8px}.phone{width:338px}.wa-stage{padding-top:0}.wa-note{max-width:300px}}@media(prefers-reduced-motion:reduce){.wa-typing i,.wa-cursor,.wa-message{animation:none!important}}
 
-<header class="hero">
-  <div class="brand"><span class="glyph">&#8635;</span>INTRO<span>LOOP</span><small>Portfolio support, in your inbox.</small></div>
-  <p class="eyebrow">A QUIETER WAY TO HELP YOUR PORTFOLIO</p>
-  <h1>Scattered updates. One useful connection.</h1>
-  <p class="sub">See how Relay AI's progress becomes help from the fund's network.
-     Four agents do the work: Scout, Atlas, Bridge and Echo.</p>
-  <span class="badge">Insurance &middot; Northstar Ventures &middot; Interactive prototype</span>
-</header>
+.story-tools{display:flex;justify-content:space-between;align-items:center;max-width:1120px;margin:0 auto 18px;font-size:12px;color:#82728e}.story-layout{max-width:1120px;margin:auto;position:relative;min-height:735px}.phone-wrap{width:350px;margin-left:calc(50% - 175px);transition:margin-left .65s ease}.story-layout.split .phone-wrap{margin-left:0}.device-owner{font-size:10px;letter-spacing:.12em;color:#88818e;text-align:center;margin-bottom:13px;font-weight:650}.phone-action{display:flex;justify-content:center;margin-top:15px;min-height:42px}.phone-action .btn{font-size:12px}.story-panel{display:none;position:absolute;left:390px;right:0;top:0}.split .story-panel{display:block;animation:panel-in .5s ease both}.story-mail{border:1px solid #e1e5ee;border-radius:16px;background:#fff;overflow:hidden;min-height:490px;box-shadow:0 12px 35px #332f4510}.mail-top{display:flex;align-items:center;gap:12px;background:#f6f8fc;padding:18px}.mail-top>span:nth-of-type(2){font-size:11px;background:#eaf0fa;border-radius:20px;padding:9px 18px;flex:1;color:#8a92a2}.mail-top i{font-size:10px;font-style:normal;color:#68768a}.mail-tools{padding:14px 22px;color:#8a8f99;border-bottom:1px solid #f1f1f3}.mail-tools span{float:right;font-size:10px}.story-mail-content{padding:26px 30px}.story-mail-content h2{font-size:21px;margin:0 0 27px;font-weight:500}.mail-sender{display:flex;gap:10px;align-items:center;font-size:11px}.mail-sender small{display:block;color:#94929a;font-size:10px;margin-top:3px}.mail-sender>span:last-child{margin-left:auto;color:#a6a1ad;font-size:9px}.story-body{font-size:13px;line-height:1.8;margin:24px 0 28px;color:#58525f}.story-body p{margin:0 0 15px}.story-mail-action .btn{background:#0b57d0;color:white;border-color:#0b57d0;font-size:12px}.feedback-example{padding:15px;background:#f7f8fa;border-radius:8px;color:#686273}.story-confirm{margin-top:125px;text-align:center;color:#7a7382}.story-confirm>span{display:inline-grid;place-items:center;border-radius:50%;height:52px;width:52px;background:#e5f3e7;color:#478b55;font-size:24px}.story-confirm h2{color:#3f3945;font-size:22px;margin:16px 0 8px}.story-confirm small{font-size:11px}.story-crm{background:white;border:1px solid #e4deec;border-radius:14px;padding:26px}.crm-top{display:flex;justify-content:space-between;font-size:12px;color:#807589}.crm-company{display:flex;gap:14px;align-items:center;margin:35px 0}.crm-company h2{margin:0;font-size:25px}.crm-company small{color:#928699}.crm-company .avatar{height:50px;width:50px;background:#f0ebfa;color:#786092}.story-crm .row{display:flex;justify-content:space-between;border-bottom:1px solid #eee;font-size:12px;padding:17px 9px;gap:20px}.story-crm .row b{text-align:right;font-size:12px}.updated{background:#f1f8ef;animation:record-glow 1.2s ease}.crm-source,.crm-history{font-size:10px;color:#948b9d;margin-top:20px}.crm-history{padding-top:15px;border-top:1px solid #eee}.story-layout .phone{height:655px}@keyframes panel-in{from{opacity:0;transform:translateX(25px)}to{opacity:1;transform:none}}@keyframes record-glow{from{background:#d7edcf}to{background:#f1f8ef}}@media(max-width:900px){.story-layout.split .phone-wrap{margin:auto}.story-panel{position:static;margin:30px auto 0;max-width:650px}.story-layout{min-height:735px}.story-mail-content{padding:22px}.story-tools{gap:15px}.story-crm .row{flex-wrap:wrap}}@media(prefers-reduced-motion:reduce){.phone-wrap{transition:none}.split .story-panel,.updated{animation:none}}
 
-<div class="wrap">
-  <nav class="steps" id="steps">
-    <button data-step="0" class="on"><span class="n">1</span><span>Scattered updates<small>LinkedIn &middot; email &middot; job post</small></span></button>
-    <button data-step="1"><span class="n">2</span><span>Instinct message<small>WhatsApp preview</small></span></button>
-    <button data-step="2"><span class="n">3</span><span>Company profile<small>Scout enriches</small></span></button>
-    <button data-step="3"><span class="n">4</span><span>Atlas in your inbox<small>Find the right route</small></span></button>
-    <button data-step="4"><span class="n">5</span><span>Bridge introduces<small>Email only</small></span></button>
-    <button data-step="5"><span class="n">6</span><span>Echo follows up<small>Email only</small></span></button>
-  </nav>
-
-  <div class="panel on" data-panel="0">
-    <h2>The startup shares progress in different places.</h2>
-    <p class="lede">Three scattered sources. None of them, alone, is a request for help.</p>
-    <div class="srcgrid">
-      <div class="iface">
-        <div class="srcbody">
-          <div class="k">01 &middot; LinkedIn post &middot; Public update</div>
-          <div class="ihead"><div class="avatar li">RA</div>
-            <div><div class="nm">Relay AI</div><div class="mt">InsurTech &middot; New York &middot; 2h</div></div></div>
-          <p>Big milestone for Relay AI! We're launching a claims-workflow pilot with <b>Harbor Mutual</b>.</p>
-          <p>Excited to help insurance teams spend less time on repetitive work and more time supporting policyholders.</p>
-          <p style="color:var(--li)">#Insurance #EnterpriseAI #Partnership</p>
-          <div class="iactions"><span>Like</span><span>Comment</span><span>Repost</span><span>Send</span></div>
-        </div>
-        <div class="foot">Sample announcement &middot; progress, not proof of a problem</div>
-      </div>
-      <div class="iface">
-        <div class="srcbody">
-          <div class="k">02 &middot; Investor update &middot; Private email</div>
-          <div class="ihead"><div class="avatar em">ED</div>
-            <div><div class="nm">Emma Davis</div><div class="mt">To: the fund &middot; 9:25 AM</div></div></div>
-          <p style="margin-top:0"><b>Relay AI: October investor update</b></p>
-          <ul>
-            <li>Our Harbor Mutual pilot is kicking off.</li>
-            <li>Three pilots are waiting on security and procurement reviews.</li>
-            <li>We're hiring our first Solutions Engineer.</li>
-          </ul>
-          <p><b>Where we could use help:</b> someone who has navigated insurer security reviews and enterprise deployment.</p>
-        </div>
-        <div class="foot">Sample founder email &middot; explicitly requests help</div>
-      </div>
-      <div class="iface">
-        <div class="srcbody">
-          <div class="k">03 &middot; Job posting &middot; Hiring signal</div>
-          <div class="ihead"><div class="avatar jb">RA</div>
-            <div><div class="nm">Founding Solutions Engineer</div><div class="mt">Relay AI &middot; New York, NY &middot; Hybrid &middot; Full-time</div></div></div>
-          <ul>
-            <li>Lead deployments with insurance customers.</li>
-            <li>Work with enterprise security and IT teams.</li>
-            <li>Turn successful pilots into production workflows.</li>
-          </ul>
-          <span class="apply">Apply now</span>
-        </div>
-        <div class="foot">Sample listing &middot; shows investment in deployment capacity</div>
-      </div>
-    </div>
-    <p class="combine"><span class="agentchip">SCOUT</span><span><b>Scout reads all three.</b> The company's next priority is clearer when the updates are combined.</span></p>
-  </div>
-
-  <div class="panel" data-panel="1">
-    <h2>One introduction. Every step, in context.</h2>
-    <p class="lede">The entire conversation happens inside the phones. Sarah's partner view, Daniel's confirmation, and Maya's inbox, side by side.</p>
-    <div class="phones">
-      <div class="phonewrap"><div class="phonecap">SARAH &middot; VC PARTNER'S IPHONE</div>
-      <div class="phone">
-        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
-        <div class="phead"><div class="pav" style="background:#16294d">I</div>
-          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
-        <div class="pbody">
-          <span class="pill">Insurance deployments &middot; via Daniel</span>
-          <div class="pb">Relay AI, from this week's updates: Harbor Mutual pilot live, three customers waiting on security and procurement reviews, first Solutions Engineer role open. One need: help turning pilots into paying customers.<small>Scout &middot; three sources combined</small></div>
-          <div class="pb">Best route: <b>Maya Bennett</b>, VP Enterprise Sales at InsurTech Group. She is Daniel's contact, and she has navigated insurer security reviews twice.<small>Atlas &middot; score 12.2 &middot; uncertainty medium</small></div>
-          <div class="pb me">Let's connect Emma with Maya.<small>Sarah</small></div>
-          <div class="ptext">I've asked Daniel to confirm the connection.</div>
-          <div class="emailcard"><div class="ek">&#9993; ASK SENT &middot; TO DANIEL</div>
-            <div class="et">Can you connect us with Maya?</div>
-            Hi Daniel, Emma at Relay AI needs help with insurer security reviews. Would you be comfortable introducing her to Maya? Confirm and I'll ask Maya on your behalf.
-            <div class="await">Sent inside Daniel's Instinct &middot; Introloop</div></div></div>
-        <div class="pfoot">+ &nbsp;Message</div>
-      </div></div>
-      <div class="parrow">&#8594;</div>
-      <div class="phonewrap"><div class="phonecap">DANIEL &middot; IPHONE &middot; INSTINCT</div>
-      <div class="phone">
-        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
-        <div class="phead"><div class="pav" style="background:#16294d">I</div>
-          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
-        <div class="pbody">
-          <span class="pill">Introloop &middot; confirmation requested</span>
-          <div class="pb">Sarah wants to connect <b>Emma Davis</b> (Relay AI) with your contact <b>Maya Bennett</b>. Emma's pilots are waiting on insurer security and procurement reviews, and Maya has been through those reviews twice.<small>Introloop &middot; on Sarah's behalf</small></div>
-          <div class="pb">Maya is inside her consent envelope for insurer introductions, 1 of 2 used this month. If you confirm, I'll email Maya and Sarah makes the introduction.<small>Bridge &middot; fit and duplicate checks passed</small></div>
-          <div class="pb me">Confirmed. Maya is perfect for this. Go ahead and ask her.<small>Daniel</small></div>
-          <div class="ptext">Confirmed. Emailing Maya now, from you, and letting Sarah know.</div></div>
-        <div class="pfoot">+ &nbsp;Message</div>
-      </div></div>
-      <div class="parrow">&#8594;</div>
-      <div class="phonewrap"><div class="phonecap">MAYA &middot; IPHONE &middot; GMAIL</div>
-      <div class="phone">
-        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
-        <div class="phead"><div class="pav" style="background:#c5221f">G</div>
-          <div><div class="nm">Gmail</div><div class="mt">Inbox &middot; Maya Bennett</div></div></div>
-        <div class="pbody">
-          <div class="gfrom"><div class="pav" style="background:#e8710a">D</div>
-            <div><div class="nm" style="font-size:13.5px;font-weight:700">Daniel Brooks</div>
-            <div class="mt" style="color:var(--muted);font-size:11.5px">to me &middot; 10:02 AM</div></div></div>
-          <p style="margin:2px 0 0;font-size:13.5px"><b>Can I introduce you to Emma at Relay AI?</b></p>
-          <div class="ptext">Hi Maya, Emma at Relay AI needs help with insurer security reviews. Would you be comfortable introducing her to Sarah at Northstar, who will connect you both? You've done this twice at InsurTech Group, which is why I thought of you.</div>
-          <div class="emailcard"><div class="ek">&#9993; YOUR REPLY &middot; SENT</div>
-            <div class="et">Re: Can I introduce you to Emma at Relay AI?</div>
-            Happy to. Insurer security reviews were my last two roles. Introduce us.
-            <div class="await">Maya Bennett &middot; from her Gmail</div></div></div>
-        <div class="pfoot">+ &nbsp;Reply</div>
-      </div></div>
-    </div>
-  </div>
-    </div>
-  </div>
-
-  <div class="panel" data-panel="2">
-    <h2>Scout enriches the company profile.</h2>
-    <p class="lede">Company and market context from Akta, sources attached. Another company's activity is context, never proof of Relay's need.</p>
-    <div class="kv">
-      <div class="cell"><div class="k">Company</div><b>Relay AI</b><br>AI claims automation for insurers<br>60 employees &middot; HQ New York<br>Series A, $18M raised</div>
-      <div class="cell"><div class="k">Signals (Akta)</div>Partnership: pilot live with Harbor Mutual<br>Hiring: deployment lead for insurer implementations<br>Headcount growth: +12% this quarter</div>
-      <div class="cell"><div class="k">Comparables (context only)</div>ClaimFast AI &middot; PolicyPilot &middot; Adjustr<br><span style="color:var(--muted)">Other companies deploying AI for insurers. Context for the market, not evidence about Relay.</span></div>
-      <div class="cell"><div class="k">Detected need &middot; Explicit</div><b>Help turning pilots into paying customers: navigate insurer security and procurement reviews.</b><br><span style="color:var(--muted)">Evidence: founder update, Oct 23, in her own words. Saved to Relay's profile.</span></div>
-    </div>
-  </div>
-
-  <div class="panel" data-panel="3">
-    <h2>Atlas finds the right route, in your inbox.</h2>
-    <p class="lede">The whole firm's network searched. The best route runs through a colleague, and the card says so.</p>
-    <div class="mail">
-      <div class="mhead"><b>From:</b> Atlas (Introloop)<br><b>Subject:</b> Relay AI: the right route is Maya Bennett, via Daniel</div>
-      <div class="mbody">
-        <p><b>Recommended:</b> Maya Bennett, VP Enterprise Sales, InsurTech Group. She has sold AI software to insurers and navigated their security reviews twice.</p>
-        <p><b>Evidence and uncertainty:</b> score 12.2, LinkedIn record, relationship strength 4/5, owned by Daniel. Uncertainty: medium. She has no past intro outcomes yet, so her track record here is unproven, and this card does not pretend otherwise.</p>
-        <p><b>Consent:</b> Maya is inside her standing consent envelope for insurer introductions (1 of 2 used this month), so there is no permission round trip on her side. Your approval of this card is the only gate, and the draft routes to Daniel first, because it is his relationship.</p>
-        <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See the evidence</span><span class="btn">Pass</span></div>
-        <div class="chips"><span class="chip">fit check passed</span><span class="chip">no duplicate on file</span><span class="chip info">Akta sourced</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="panel" data-panel="4">
-    <h2>Maya confirmed. Sarah makes the introduction.</h2>
-    <p class="lede">Two screens now: Sarah's Instinct on the left, and the email as it lands in Gmail on the right.</p>
-    <div class="phones">
-      <div class="phonewrap"><div class="phonecap">SARAH &middot; IPHONE &middot; INSTINCT</div>
-      <div class="phone">
-        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
-        <div class="phead"><div class="pav" style="background:#16294d">I</div>
-          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
-        <div class="pbody">
-          <div class="pb">Maya confirmed. She is happy to be introduced, and she said insurer security reviews were her last two roles.<small>Echo &middot; reply captured from Maya's Gmail</small></div>
-          <div class="pb">I've drafted the introduction email to Emma and Maya, from you. Nothing has been sent yet.<small>Bridge &middot; partner approval required</small></div>
-          <div class="pb me">Send it.<small>Sarah</small></div>
-          <div class="ptext">Sent. Emma and Maya both have it, and I'll follow up with each of them in two days.</div>
-          <div class="emailcard"><div class="ek">&#9993; EMAIL SENT &middot; FROM SARAH</div>
-            <div class="et">Connecting you: Relay AI &times; Maya Bennett</div>
-            To Emma Davis and Maya Bennett.
-            <div class="await">Delivered &middot; Introloop</div></div></div>
-        <div class="pfoot">+ &nbsp;Message</div>
-      </div></div>
-      <div class="parrow">&#8594;</div>
-      <div class="phonewrap"><div class="phonecap">GMAIL &middot; EMMA'S INBOX</div>
-      <div class="phone">
-        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
-        <div class="phead"><div class="pav" style="background:#c5221f">G</div>
-          <div><div class="nm">Gmail</div><div class="mt">Inbox &middot; Emma Davis</div></div></div>
-        <div class="pbody">
-          <div class="gfrom"><div class="pav" style="background:#7c5cd6">S</div>
-            <div><div class="nm" style="font-size:13.5px;font-weight:700">Sarah &middot; Northstar Ventures</div>
-            <div class="mt" style="color:var(--muted);font-size:11.5px">to Emma, Maya &middot; 10:20 AM</div></div></div>
-          <p style="margin:2px 0 0;font-size:13.5px"><b>Connecting you: Relay AI &times; Maya Bennett</b></p>
-          <div class="ptext">Emma, Maya: connecting you both.</div>
-          <div class="ptext">Emma, Relay's pilots are waiting on insurer security and procurement reviews. Maya has sold AI software to insurers and navigated exactly those reviews at InsurTech Group, and she agreed to be introduced for precisely this.</div>
-          <div class="ptext">Maya, Emma is Relay's founder. A short conversation on how you got enterprise deployments through security review would be directly useful this month.</div>
-          <div class="ptext">I'll let you two take it from here. Sarah</div></div>
-        <div class="pfoot">+ &nbsp;Reply</div>
-      </div></div>
-    </div>
-  </div>
-    </div>
-  </div>
-
-  <div class="panel" data-panel="5">
-    <h2>Echo closes the loop, by email.</h2>
-    <p class="lede">Sarah's Instinct emails Emma to ask for feedback, and her answer, straight from Gmail, is what the system learns from.</p>
-    <div class="phones">
-      <div class="phonewrap"><div class="phonecap">SARAH &middot; IPHONE &middot; INSTINCT</div>
-      <div class="phone">
-        <div class="notch"><span>9:41</span><i></i><span class="sig">&#9646;&#9646;&#9646;</span></div>
-        <div class="phead"><div class="pav" style="background:#16294d">I</div>
-          <div><div class="nm">Instinct</div><div class="mt">Your portfolio assistant</div></div></div>
-        <div class="pbody">
-          <span class="pill">Three days after the introduction</span>
-          <div class="pb">Emma and Maya spoke on Tuesday. I've emailed Emma to ask how it went, so the outcome is recorded even if she forgets to report back.<small>Echo &middot; follow-through</small></div>
-          <div class="emailcard"><div class="ek">&#9993; EMAIL SENT &middot; TO EMMA DAVIS</div>
-            <div class="et">How did the conversation with Maya go?</div>
-            Hi Emma, quick check-in: was the introduction to Maya useful for the security reviews? A sentence is plenty, and it helps us make better connections for Relay.
-            <div class="await">Sent from Sarah's Instinct &middot; Introloop</div></div>
-          <div class="emailcard"><div class="ek">&#9993; EMMA REPLIED</div>
-            <div class="et">Re: How did the conversation with Maya go?</div>
-            It was useful. Maya walked me through the security packet Harbor Mutual expects, and we're reusing it for the other two pilots.
-            <div class="await">Emma Davis &middot; from her Gmail</div></div>
-          <div class="pb">Recorded: connected, and useful. Scorecards updated: Scout +10, Atlas +5, Echo +3.<small>PRISM trace complete</small></div></div>
-        <div class="pfoot">+ &nbsp;Message</div>
-      </div></div>
-    </div>
-  </div>
-    </div>
-  </div>
-
-  <div class="controls">
-    <button id="back">Back</button>
-    <div class="note"><span id="pos">1 / 6</span><br><span id="note">Three sources. The founder's email makes the need explicit.</span></div>
-    <button id="next" class="primary">Next</button>
-  </div>
-  <p class="fineprint">Fictional companies and messages &middot; interface recreations &middot; no emails sent</p>
-</div>
-
-<section class="more wrap">
-  <h2 class="title">What else it does</h2>
-  <p class="sub">Introloop is bring-your-own-agent: the same team, running inside the assistant
-     each fund already uses. Nine investor use cases across the three hosts.</p>
-
-  <div class="platform"><div class="dot" style="background:var(--muse)"></div>
-    <div><h3>On Muse</h3><p>For the partner whose own assistant runs the fund's follow-through</p></div></div>
-  <div class="grid">
-    <div class="mock">
-      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 1</div>
-      <h4>The 7 AM briefing</h4>
-      <div class="body">
-        <div class="msg user">Morning. What needs me today?</div>
-        <div class="cardbox">
-          <div class="who">INTROLOOP BRIEFING &middot; OVERNIGHT</div>
-          <b>Relay</b> needs help turning pilots into paying customers. Scout: explicit need,
-          founder's own words attached. Atlas: best match is <b>Maya Bennett</b> (Daniel's contact,
-          sold AI to insurers, score 12.2, uncertainty medium). Bridge: card ready.
-          Maya is inside her consent envelope, so your approval is the only gate.
-          <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See evidence</span><span class="btn">Pass</span></div>
-        </div>
-      </div>
-      <p class="why">Why it matters: the partner starts the day with one decision, not forty unread founder updates.</p>
-    </div>
-    <div class="mock">
-      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 2</div>
-      <h4>Proof on demand</h4>
-      <div class="body">
-        <div class="msg user">Why Maya? Show me the evidence before I approve anything.</div>
-        <div class="cardbox">
-          <div class="who">PRISM EVALUATION &middot; 6/6 CHECKS PASSED</div>
-          Evidence: "Three potential customers are stuck in security and procurement reviews"
-          (founder update, Oct 23). Relationship claim supported: LinkedIn record, strength 4/5,
-          owned by Daniel. Akta context: Relay, AI claims automation, 60 employees,
-          partnership live with Harbor Mutual.
-          <div class="chips"><span class="chip">evidence verbatim</span><span class="chip">no unsupported claims</span><span class="chip">akta sourced</span></div>
-        </div>
-      </div>
-      <p class="why">Why it matters: every recommendation an investor sees can be audited back to the data that produced it.</p>
-    </div>
-    <div class="mock">
-      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 3</div>
-      <h4>The loop closes itself</h4>
-      <div class="body">
-        <div class="msg agent"><div class="who">ECHO &middot; FOLLOW-THROUGH</div>
-          Relay and Maya connected on Tuesday. The founder marked the help useful, so the pattern
-          is reinforced for the next insurance need. Scorecards: Scout +10, Atlas +5.
-          Atlas also took a strike: its Northwind pick passed. Nothing was hidden.</div>
-        <div class="btns"><span class="btn">View scorecards</span><span class="btn">Weekly rollup</span></div>
-      </div>
-      <p class="why">Why it matters: outcomes are captured even when the founder forgets to report back, and the agents' track record is visible.</p>
-    </div>
-  </div>
-
-  <div class="platform"><div class="dot" style="background:var(--instinct)"></div>
-    <div><h3>On Instinct</h3><p>For the fund that wants the work done before anyone asks</p></div></div>
-  <div class="grid">
-    <div class="mock">
-      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 1</div>
-      <h4>It worked overnight</h4>
-      <div class="body">
-        <div class="msg sys"><div class="who">PROACTIVE CYCLE &middot; 6:12 AM &middot; NOBODY ASKED</div>
-          Watch cycle complete. New Akta signal: VoltPack posted 6 new roles.
-          Scout prepared a bridge-raise action card. Echo sent 2 follow-up nudges
-          (earned autonomy, L2). One card is waiting for a partner.</div>
-        <div class="btns"><span class="btn primary">Review the card</span><span class="btn">Read the briefing</span></div>
-      </div>
-      <p class="why">Why it matters: portfolio support stops being reactive inbox triage and starts being a system that runs itself.</p>
-    </div>
-    <div class="mock">
-      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 2</div>
-      <h4>Inbox, annotated</h4>
-      <div class="body">
-        <div class="cardbox">
-          <div class="who">FOUNDER UPDATE &middot; RELAY &middot; INBOX</div>
-          "Investor update: three potential customers are stuck in security and procurement
-          reviews. Turning pilots into paying customers is our number one bottleneck."
-          <div class="chips"><span class="chip">Scout: need spotted</span><span class="chip">explicit, founder's words</span></div>
-          <div class="btns"><span class="btn primary">Confirm with founder</span><span class="btn">Find who can help</span></div>
-        </div>
-      </div>
-      <p class="why">Why it matters: the signal is caught where it lands, inside the inbox, not in a spreadsheet someone updates monthly.</p>
-    </div>
-    <div class="mock">
-      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 3</div>
-      <h4>Autonomy, earned in public</h4>
-      <div class="body">
-        <div class="msg sys"><div class="who">TRUST LADDER &middot; LEVEL UP</div>
-          Introloop reached <b>L3 Connector</b> (60 XP, 3 verified wins). Unlocked: sending
-          double-opt-in first asks on approved needs. Current strikes: 1 (Atlas, dead pick).
-          Three strikes demote. Every action it took unsupervised is in the trace.</div>
-        <div class="btns"><span class="btn">View the trace</span><span class="btn">Set the envelope</span></div>
-      </div>
-      <p class="why">Why it matters: investors can grant an agent more access safely, because the access is earned by verified outcomes and lost by mistakes.</p>
-    </div>
-  </div>
-
-  <div class="platform"><div class="dot" style="background:var(--dots)"></div>
-    <div><h3>On Dots</h3><p>For the whole firm: one shared workspace, one collective network</p></div></div>
-  <div class="grid">
-    <div class="mock">
-      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 1</div>
-      <h4>The firm feed</h4>
-      <div class="body">
-        <div class="msg agent"><div class="who">#PORTFOLIO-OPS &middot; INTROLOOP FEED</div>
-          Giulio's intro worked: Sarah Kim (Northgate Retail) took the meeting with RouteWise.
-          This week's rollup is pinned: 11 intros proposed, 4 meetings, 1 need resolved as useful.</div>
-        <div class="chips"><span class="chip">reply rate up</span><span class="chip">top connector: Daniel</span></div>
-      </div>
-      <p class="why">Why it matters: every partner sees the network working, so the whole firm's relationships compound instead of sitting in private inboxes.</p>
-    </div>
-    <div class="mock">
-      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 2</div>
-      <h4>The colleague ask</h4>
-      <div class="body">
-        <div class="msg agent"><div class="who">ATLAS &middot; TO ALL PARTNERS</div>
-          Who knows someone who has sold AI software to insurers and navigated their security reviews?
-          Relay needs exactly that.</div>
-        <div class="msg user"><div class="who">PARTNER B</div>
-          Maya Bennett, my contact at InsurTech Group. She has done this twice.</div>
-        <div class="msg agent"><div class="who">ATLAS</div>
-          Candidate saved with evidence and uncertainty noted. Bridge is preparing the card,
-          and the draft routes to Daniel for approval, since it is his relationship.</div>
-      </div>
-      <p class="why">Why it matters: when the answer lives in a colleague's relationships, the agent asks the room instead of guessing.</p>
-    </div>
-    <div class="mock">
-      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 3</div>
-      <h4>Agent to agent</h4>
-      <div class="body">
-        <div class="msg sys"><div class="who">ROUNDTABLE &middot; INCOMING FROM RELAY'S FOUNDER AGENT</div>
-          Need shared with its case file: company profile, the founder's evidence, and the
-          full trace of how the need was detected.</div>
-        <div class="msg agent"><div class="who">INTROLOOP VIA DOTS</div>
-          Received. Atlas found 3 possible connections in the fund's network.
-          The top match is ready for partner review; the other two carry higher uncertainty and say so.</div>
-        <div class="btns"><span class="btn primary">Review top match</span><span class="btn">See all three</span></div>
-      </div>
-      <p class="why">Why it matters: founders' agents and funds' agents can cooperate directly, with the fund's approval rules still in charge.</p>
-    </div>
-  </div>
-</section>
-
-<footer>
-  Introloop is bring-your-own-agent: one skill any host agent can run, state on the fund's own machine.<br>
-  Data and signals by Akta.pro &middot; Model calls by Nicrron &middot; Traced and evaluated by PRISM (Block Convey) &middot; Agent-to-agent via Roundtable
-</footer>
-
+.wa-mail-preview{border:1px solid #dce6df;background:#f8faf8;border-radius:8px;padding:10px;margin-top:10px}.wa-mail-top{font-size:8px;letter-spacing:.08em;color:#718777;font-weight:700;display:flex;justify-content:space-between}.wa-mail-preview>small{font-size:9px;color:#849087;display:block;margin:5px 0}.wa-mail-preview>strong{font-size:11px;display:block;margin-bottom:7px}.wa-mail-copy{font-size:10px;line-height:1.6;color:#617368}.wa-mail-copy p{margin:0 0 6px}.wa-mail-foot{font-size:8px;border-top:1px solid #e4ebe5;padding-top:6px;margin-top:8px;color:#819084}.wa-event{font-size:8px;color:#71907c;margin-top:9px}.wa-chat .wa-message:not(:last-child){animation:none}.loop-actions{display:flex;gap:8px;flex-wrap:wrap}.loop-actions .loop-secondary{background:#fff;color:#6a6273;border-color:#e1dce6}.loop-powered{flex-basis:100%;margin-top:14px;font-size:10px;color:#938b9d;display:flex;align-items:center;gap:4px}.loop-powered>span{color:#776293;font-size:15px}.loop-powered b{font-weight:650;color:#776293}.loop-powered small{font-size:9px;margin-left:auto;color:#a39ba9}.loop-receipt{padding:10px 14px;color:#487655;background:#edf6ee;border-radius:8px;font-size:12px;flex-basis:100%;animation:wa-pop .3s ease}.intro-sent{font-size:11px;color:#75907b}.loop-note-label{display:block;font-size:10px;color:#8f8599;margin:20px 0 6px}.loop-note{width:100%;border:1px solid #e4deeb;border-radius:8px;background:#faf9fb;resize:vertical;font-size:12px;color:#655b6e;padding:12px;line-height:1.6}.story-mail-content{padding-bottom:28px}.story-body{margin-bottom:24px}
+</style></head><body><header class="app"><div class="brand">intro<span>desk</span><small>Portfolio support, in your inbox.</small></div><div class="topright"><span>Interactive prototype</span><button id="reset" class="plain">Restart ↺</button></div></header><main><div class="intro"><div><div class="eyebrow">A quieter way to help your portfolio</div><h1>Scattered updates.<br>One useful connection.</h1><p class="sub">See how Relay AI’s progress becomes help from the fund’s network.</p></div><span class="badge">Insurance · Northstar Ventures</span></div><nav id="nav" class="nav" aria-label="Workflow steps"></nav><div class="stage-heading"><h2 id="title"></h2><span id="agent" class="agent"></span></div><section id="surface" class="surface" aria-live="polite"></section><div class="bottom-bar"><div class="caption"><b id="count"></b><span id="caption"></span></div><div class="controls"><button class="btn" id="back">Back</button><button class="btn primary" id="next">Next →</button></div></div><footer class="tiny-footer"><span>Fictional companies and messages · interface recreations · no emails sent</span><button class="plain" style="font-size:10px;padding:0" data-action="tools">How the tools fit together ↗</button></footer></main><dialog id="modal" class="dialog"><button id="close" class="close" aria-label="Close">×</button><div id="modalContent"></div></dialog><div id="toast" class="toast hidden" role="status"></div>
 <script>
-  var notes = [
-    "Three sources. The founder's email makes the need explicit.",
-    "Three phones: Sarah's Instinct, Daniel's Instinct, Maya's Gmail.",
-    "Scout's profile: context attached, need evidenced.",
-    "Atlas searched the whole firm. The route runs through a colleague.",
-    "Maya confirmed. Sarah approves, the intro lands in Emma's Gmail.",
-    "Echo emails Emma for feedback. Her reply closes the loop."
-  ];
-  var cur = 0;
-  var panels = document.querySelectorAll("[data-panel]");
-  var tabs = document.querySelectorAll("#steps button");
-  var back = document.getElementById("back"), next = document.getElementById("next");
-  var pos = document.getElementById("pos"), note = document.getElementById("note");
-  function show(i) {
-    cur = Math.max(0, Math.min(5, i));
-    panels.forEach(function(p){ p.classList.toggle("on", +p.dataset.panel === cur); });
-    tabs.forEach(function(t){ t.classList.toggle("on", +t.dataset.step === cur); });
-    back.disabled = cur === 0;
-    next.textContent = cur === 5 ? "Restart" : "Next";
-    pos.textContent = (cur + 1) + " / 6";
-    note.textContent = notes[cur];
-  }
-  tabs.forEach(function(t){ t.addEventListener("click", function(){ show(+t.dataset.step); }); });
-  back.addEventListener("click", function(){ show(cur - 1); });
-  next.addEventListener("click", function(){ show(cur === 5 ? 0 : cur + 1); });
-  show(0);
-</script>
+const $=id=>document.getElementById(id);const names=['Scattered updates','Company profile','Atlas in your inbox','Bridge introduces','Echo follows up'];const titles=['The startup shares progress in different places.','Scout brings the company profile up to date.','Atlas spots a way your network can help.','Bridge handles the introduction in email.','Echo asks whether the connection helped.'];const captions=['Three sources. The founder’s email makes the need explicit.','One company record, with the source behind each update.','One suggestion. Relationship details only when you need them.','Review the draft, confirm interest, and connect both people.','A short reply improves the company and network records.'];const stepOrder=[0,5,1,2,3,4];names.push('Instinct message');titles.push('One introduction. Every step, in context.');captions.push('Click each action to move the story forward.');let waTimers=[],waPhase=0,waChoice='maya';let step=0,profileTab='sheet',response='',timer;const empty={colleagueConfirmed:false,approved:false,permissionAccepted:false,introduced:false,feedbackSaved:false,feedback:'',note:'',draft:''};let s={...empty};try{let v=JSON.parse(localStorage.getItem('introdesk-simple-v2')||'null');if(v)for(let k in empty)if(typeof v[k]===typeof empty[k])s[k]=v[k]}catch{}response=s.feedback;
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function save(){try{localStorage.setItem('introdesk-simple-v2',JSON.stringify(s))}catch{}}function go(n){clearWa();step=Math.max(0,Math.min(5,n));render()}function notify(t){clearTimeout(timer);$('toast').textContent=t;$('toast').classList.remove('hidden');timer=setTimeout(()=>$('toast').classList.add('hidden'),3000)}function person(n,i,meta,relay=false){return `<div class="person"><span class="avatar ${relay?'relay':''}">${i}</span><div><strong>${n}</strong><small>${meta}</small></div></div>`}function dialog(title,body){$('modalContent').innerHTML=`<h2>${title}</h2>${body}`;$('modal').showModal()}
+function scattered(){return `<div class="sources"><article class="source-window"><div class="window-label"><span>01 · LinkedIn post</span><span>Public update</span></div><div class="li-top"><span class="li-logo">in</span><div class="fake-search">⌕ &nbsp; Search</div><span style="font-size:13px;color:#777">⌂ &nbsp; ▦</span></div><div class="li-post"><div class="li-person">${person('Relay AI','r','1,240 followers · 2h · ◉',true)}</div><div class="li-copy"><p>Big milestone for Relay AI! We’re launching a claims-workflow pilot with <strong>Harbor Mutual</strong>.</p><p>Excited to help insurance teams spend less time on repetitive work and more time supporting policyholders.</p><p style="color:#0a66c2">#Insurance #EnterpriseAI #Partnership</p></div><div class="li-art"><span class="avatar relay" style="width:46px;height:46px">r</span><span class="cross">×</span><div><strong>Harbor Mutual</strong><small>A new chapter for claims operations.</small></div></div><div class="li-count"><span>👍 💡 48</span><span>6 comments · 3 reposts</span></div><div class="li-actions"><span>♧ Like</span><span>▢ Comment</span><span>⇄ Repost</span><span>➤ Send</span></div></div><div class="source-foot">Sample announcement · progress, not proof of a problem</div></article><article class="source-window"><div class="window-label"><span>02 · Investor update</span><span>Private email</span></div><div class="mail-preview-head"><span class="m-logo">M</span><span class="gmail-word">Gmail</span><span style="margin-left:auto;color:#858585;font-size:12px">↶ &nbsp; ⋮</span></div><div class="source-email"><h3>Relay AI — October investor update</h3>${person('Emma Davis','ED','to Sarah, Daniel · 9:25 AM')}<div class="email-copy"><p>Hi everyone,</p><p>A quick update on our insurance rollout:</p><ul><li>Our Harbor Mutual pilot is kicking off.</li><li>Three pilots are waiting on security and procurement reviews.</li><li>We’re hiring our first Solutions Engineer.</li></ul><p><strong>Where we could use help:</strong><br><mark>Someone who has navigated insurer security reviews and enterprise deployment.</mark></p><p>A short conversation with an experienced operator would be valuable.</p><p>Thanks,<br>Emma</p></div></div><div class="source-foot">Sample founder email · explicitly requests help</div></article><article class="source-window"><div class="window-label"><span>03 · Job posting</span><span>Hiring signal</span></div><div class="indeed-top"><b class="indeed">indeed</b><span>Find jobs &nbsp; Company reviews</span></div><div class="job-search"><div><b>What</b> &nbsp; Solutions Engineer</div><div><b>Where</b> &nbsp; New York</div></div><div class="job"><span class="badge blue">New</span><h3>Founding Solutions Engineer</h3><div class="company">Relay AI</div><div class="location">New York, NY · Hybrid</div><div class="types"><span>Full-time</span><span>Founding team</span></div><span class="apply">Apply now ↗</span><hr><h4>About the role</h4><ul><li>Lead deployments with insurance customers.</li><li>Work with enterprise security and IT teams.</li><li>Turn successful pilots into production workflows.</li></ul></div><div class="source-foot">Sample listing · shows investment in deployment capacity</div></article></div><div class="under-note"><span><strong>Scout reads all three.</strong> The company’s next priority is clearer when the updates are combined.</span><span>LinkedIn + email + careers page</span></div>`}
+function profile(){let details=profileTab==='market'?`<div class="detail-label">Space</div><div class="priority">AI software for insurance claims<small>Market context · illustrative enrichment</small></div><div class="detail-label">Comparable activity</div><div class="detail-row"><span>ClaimWorks AI</span><b>Claims triage</b></div><div class="detail-row"><span>PolicyPilot</span><b>Deployment support</b></div><p class="blurb">Fictional peers demonstrate how akta.pro context could enrich this record. Their activity does not establish Relay’s needs.</p>`:profileTab==='sources'?`<div class="detail-label">Source ledger</div><div class="detail-row"><span>Insurance partnership</span><b>LinkedIn · Today</b></div><div class="detail-row"><span>Review blocker and ask</span><b>Investor email · Today</b></div><div class="detail-row"><span>Founding Solutions Engineer</span><b>Indeed · Yesterday</b></div><p class="blurb">Each update keeps its source and date. Private email excerpts remain restricted to authorized reviewers.</p>`:`<div class="detail-label">Current need <span class="badge green">Updated</span></div><div class="priority">Advice on insurer security reviews and enterprise deployment.<small>Explicit ask · Emma’s investor update</small></div><div class="detail-label">Latest developments</div><div class="detail-row"><span>Partnership</span><b>Harbor Mutual pilot</b></div><div class="detail-row"><span>Deployment blocker</span><b>3 pilots awaiting reviews</b></div><div class="detail-row"><span>Hiring</span><b>Solutions Engineer</b></div>${s.feedbackSaved?`<div class="detail-row"><span>Founder feedback</span><b>${s.feedback==='useful'?'Maya’s advice was useful':'Follow-through updated'}</b></div>`:''}<details><summary>View the original ask</summary><p>“Someone who has navigated insurer security reviews and enterprise deployment.”</p></details>`;return `<div class="db"><div class="db-top"><div class="db-title"><span>▦</span>Portfolio companies</div><span class="badge green">Scout updated Relay AI</span></div><div class="db-tabs"><button class="db-tab ${profileTab==='sheet'?'active':''}" data-profile="sheet">▦ &nbsp; Sheet view</button><button class="db-tab ${profileTab==='market'?'active':''}" data-profile="market">◎ &nbsp; Market & peers</button><button class="db-tab ${profileTab==='sources'?'active':''}" data-profile="sources">▤ &nbsp; Sources</button></div><div class="db-toolbar"><span>All companies &nbsp; / &nbsp; Relay AI selected</span><span>Latest source updates</span></div><div class="db-split"><div class="table-scroll"><table class="portfolio-table"><thead><tr><th>Name</th><th>Investment stage</th><th>Sector</th><th>Location</th><th>Last update</th></tr></thead><tbody>${[['Relay AI','relay.example','Seed','Insurance','New York','Today','r'],['Bloom','bloom.example','Series A','Health software','Boston','Yesterday','✳'],['Launchpad','launchpad.example','Seed','Developer tools','New York','3 days ago','▦'],['Sprout','sprout.example','Seed','Climate','San Francisco','5 days ago','◉'],['CodePad','codepad.example','Series A','Software','Austin','7 days ago','⌘'],['Forward','forward.example','Seed','Logistics','Chicago','10 days ago','↗']].map(([n,d,st,se,l,u,i],idx)=>`<tr class="${idx===0?'selected':''}"><td><button data-action="${idx===0?'company-details':'other-company'}"><span class="logo ${idx===0?'r':''}">${i}</span><span>${n}<span class="domain" style="display:block">${d}</span></span></button></td><td><span class="stage-label">${st}</span></td><td>${se}</td><td>${l}</td><td>${u}</td></tr>`).join('')}</tbody></table></div><aside class="profile-panel"><div style="display:flex;justify-content:space-between;align-items:center"><span class="avatar relay" style="height:42px;width:42px">r</span><span class="badge">Portfolio company</span></div><h3>Relay AI</h3><span style="font-size:10px;color:#93869d">relay.example · Seed · New York</span><p class="blurb">AI claims workflows for insurance teams. Moving from pilots to production.</p>${details}<div class="actions"><button class="btn small primary" data-go="2">See Atlas’s suggestion →</button></div></aside></div><div class="profile-update">✓ Partnership, current need, and hiring context updated from their sources.</div></div>`}
+function gmail(content,inbox=false){return `<div class="gmail ${inbox?'inbox':''}"><div class="gmail-top"><div class="gmail-brand"><span class="hamburger">☰</span><span class="m-logo">M</span><span class="gmail-word">Gmail</span></div><div class="gmail-search">⌕ &nbsp; Search mail</div><span style="color:#8d9299;font-size:13px">⚙</span><span class="gmail-user">SC</span></div><div class="gmail-layout"><aside class="gmail-side"><div class="compose">✎ &nbsp; Compose</div><div class="folder selected"><span>▣ &nbsp; Inbox</span><span>4</span></div><div class="folder">☆ &nbsp; Starred</div><div class="folder">◷ &nbsp; Snoozed</div><div class="folder">➤ &nbsp; Sent</div><div class="folder">▤ &nbsp; Drafts</div><div class="folder">⌄ &nbsp; More</div><div style="padding:25px 14px 5px;color:#949aa3;font-size:10px">LABELS</div><div class="folder">◇ &nbsp; Portfolio</div><div class="folder">◇ &nbsp; Introductions</div></aside><div class="gmail-main"><div class="mail-toolbar"><span>${inbox?'□ &nbsp; ⌄ &nbsp; ⟳ &nbsp; ⋮':'← &nbsp; ▣ &nbsp; ⊘ &nbsp; ♲ &nbsp; ⋮'}</span><span style="font-size:9px">${inbox?'1–6 of 128':'Portfolio support'}</span></div>${content}</div></div></div>`}
+function atlas(){return gmail(`<div class="inbox-tabs"><span class="active">▣ &nbsp; Primary</span><span>♧ &nbsp; Promotions</span><span>♧ &nbsp; Social</span></div>${[['□ ☆','Emma Davis','Relay AI — October investor update','9:25 AM',true],['□ ☆','Daniel Brooks','Re: Insurance operators in our network','9:12 AM',true],['□ ☆','Olivia, Northstar','Monday investment committee agenda','8:40 AM',false],['□ ☆','Platform team','Portfolio office hours — next week','Yesterday',false],['□ ☆','Maya Patel','Re: Enterprise software roundtable','Oct 18',false],['□ ☆','Founders group','Introductions and requests','Oct 17',false]].map(([a,n,t,time,u])=>`<div class="inbox-row ${u?'unread':''}"><span style="color:#adb3bb;font-size:10px">${a}</span><span>${n}</span><span class="subject">${t}</span><time>${time}</time></div>`).join('')}<div class="atlas-popup"><div class="popup-head"><span class="agent-orb">⌘</span><div><strong>Atlas</strong><small>A suggestion for your portfolio</small></div><span class="badge green" style="margin-left:auto">Relay AI</span></div><div class="popup-body"><h3>A connection could help Relay move its pilots forward.</h3><p>Emma needs advice on insurer security reviews. Maya has relevant deployment experience.</p><div class="contact-match">${person('Maya Patel','MP','Former VP, Enterprise Solutions · CoverStack')}<div class="path">Sarah → Daniel → Maya → Emma</div><div class="match-note">${s.colleagueConfirmed?'Daniel confirmed he worked with Maya and is happy to ask her.':'Daniel may know Maya. A meeting record alone does not confirm the relationship.'}</div></div><div class="proof-links"><button data-action="why-match">Why this match?</button><button data-action="network">View network profile</button></div>${s.colleagueConfirmed?'<div class="statusline">✓ Daniel confirmed the route. Maya’s interest is still unknown.</div>':''}<div class="actions">${s.colleagueConfirmed?'<button class="btn primary" data-go="3">Prepare introduction →</button>':'<button class="btn primary" data-action="ask-daniel">Check with Daniel</button>'}<button class="btn" data-action="not-now">Not now</button></div></div></div>`,true)}
+function thread(subject,n,i,meta,body){return gmail(`<article class="thread"><h3 class="email-subject">${subject}</h3>${person(n,i,meta)}<div class="email-copy">${body}</div></article>`)}
+function bridge(){if(!s.colleagueConfirmed)return thread('A quick check before the introduction','Bridge · Introdesk','BR','to Sarah · draft',`<p>Daniel’s relationship with Maya hasn’t been confirmed yet.</p><p>Atlas can ask him before preparing an introduction through his network.</p><div class="actions"><button class="btn primary" data-go="2">Check the introduction route →</button></div>`);if(!s.approved)return thread('Draft: Emma ↔ Maya — insurance deployment advice','Bridge · Introdesk','BR','to Sarah · draft for your approval',`<p>Hi Sarah,</p><p>Daniel confirmed he knows Maya and is happy to ask her. Here’s the permission request, ready for your review.</p><label for="draft" style="font-size:11px;color:#8e8198">Draft from Daniel to Maya</label><textarea id="draft" class="email-draft">${esc(s.draft||'Hi Maya,\n\nEmma at Relay AI is preparing for insurer security and procurement reviews. Three pilots are waiting on those reviews.\n\nWould you be open to a short conversation about review preparation? Your insurance deployment experience looks especially relevant.\n\nWe’ll confirm Emma’s interest before making the introduction. No pressure if the timing is difficult.\n\nDaniel')}</textarea><div class="actions"><button class="btn gmail-blue" data-action="approve">Approve & request interest</button><button class="btn" data-action="why-match">Review evidence</button></div><p class="note">Bridge checks Emma’s interest and Maya’s availability. No introduction is made yet.</p>`);if(!s.permissionAccepted)return thread('Re: Open to an introduction about insurance deployment?','Bridge · Introdesk','BR','to Sarah · permission requests prepared',`<div class="thread-status">✓ Sarah approved the draft.</div><p>The request is ready to go through Daniel. Bridge also asks Emma whether this specific conversation would be useful.</p><p>Once both people agree, the introduction is ready.</p><div class="actions"><button class="btn gmail-blue" data-action="accept">Show their replies →</button></div><p class="note">Demo: the next click simulates agreement from both people.</p>`);return thread('Emma, meet Maya — insurance deployment advice','Daniel Brooks','DB','to Emma Davis, Maya Patel · introduction draft',`<div class="thread-status">✓ Emma would welcome the connection. Maya agreed to help.</div><p>Emma, Maya — delighted to connect you.</p><p>Emma is building Relay AI and is preparing for insurer security and procurement reviews. Maya has relevant experience leading software deployments for insurers and has kindly offered to share her perspective.</p><p>Emma, could you send a short summary of the review questions and suggest a couple of times to speak?</p><p>I’ll leave you both to connect.<br>Daniel</p><div class="actions"><button class="btn gmail-blue" data-action="introduce" ${s.introduced?'disabled':''}>${s.introduced?'Introduction sent ✓':'Send introduction'}</button>${s.introduced?'<button class="btn" data-go="4">See Echo’s follow-up →</button>':''}</div><div class="reply"><span class="avatar">ED</span><div><strong>Emma Davis</strong><p>“Yes, that would be useful. Please connect us.”</p></div></div><div class="reply"><span class="avatar">MP</span><div><strong>Maya Patel</strong><p>“Happy to connect and share what I’ve learned.”</p></div></div>`)}
+function echo(){if(!s.introduced)return thread('Follow-up starts after the introduction','Echo · Introdesk','EC','to Sarah',`<p>No introduction has been made yet.</p><p>Echo will follow up after the scheduled meeting date and ask the founder whether they connected.</p><div class="actions"><button class="btn primary" data-go="3">Continue with Bridge →</button></div>`);return thread('Emma, was the conversation with Maya useful?','Echo · Introdesk','EC','to Emma Davis · after the scheduled meeting date',`<p>Hi Emma,</p><p>Your conversation with Maya was scheduled for yesterday. <strong>Did you connect, and was it useful?</strong></p><div class="feedback-choices">${[['useful','Useful'],['not-fit','Not a fit'],['not-yet','Haven’t connected']].map(([v,l])=>`<button class="btn ${response===v?'selected':''}" aria-pressed="${response===v}" data-response="${v}">${l}</button>`).join('')}</div>${response&&!s.feedbackSaved?`<label for="note" class="feedback-label">${response==='useful'?'What helped?':'Any context for the next step?'}</label><textarea id="note" class="email-draft feedback-note" placeholder="A short reply is enough.">${esc(s.note)}</textarea><div class="actions"><button class="btn gmail-blue" data-action="feedback">Send feedback</button></div>`:''}${s.feedbackSaved?`<div class="echo-result"><strong>${s.feedback==='useful'?'✓ Emma confirmed the introduction was useful.':s.feedback==='not-fit'?'Feedback recorded: not a fit.':'Feedback recorded: not connected yet.'}</strong><p>${s.note?esc(s.note):'No additional detail supplied.'}</p><p>The company and network records now include this feedback. Security-review completion and revenue remain unconfirmed.</p><div class="actions"><button class="profile-link" data-action="updated-records">See what changed →</button></div></div>`:''}<p style="margin-top:19px">Thanks,<br>Echo</p><p class="note">A scheduled meeting is not proof that it happened. Founder feedback establishes the outcome.</p>`)}
 
-</body>
-</html>
+function clearWa(){waTimers.forEach(clearTimeout);waTimers=[]}function later(fn,ms){waTimers.push(setTimeout(()=>{if(step===5)fn()},ms))}
+function whatsapp(){return `<div class="story-tools"><span id="storyLabel"></span><button class="plain" data-action="wa-replay">Restart story ↺</button></div><div class="story-layout" id="storyLayout"><div class="phone-wrap"><div class="device-owner">SARAH · VC PARTNER’S IPHONE</div><div class="phone" aria-label="Sarah’s WhatsApp"><div class="phone-status"><span>9:41</span><div class="island"></div><span>▮▮▮ ▰</span></div><div class="wa-header"><span class="wa-back">‹</span><span class="wa-avatar">I</span><div class="wa-name">Instinct<small>Your portfolio assistant</small></div></div><div class="wa-chat" id="waChat" aria-live="polite"></div><div class="wa-composer"><span>＋</span><span class="wa-input">Message</span></div><div class="phone-home"></div></div><div id="phoneAction" class="phone-action"></div></div><aside id="storyPanel" class="story-panel" aria-live="polite"></aside></div>`}
+let waPaused='',waFeedback='useful';
+function storyButton(label,next){return `<button class="btn primary" data-story="${next}">${label}</button>`}
+function loopButton(label,event,secondary=false){return `<button class="btn ${secondary?'loop-secondary':'primary'}" data-loop="${event}">${label}</button>`}
+function loopActions(buttons,receipt=''){return `<div class="loop-actions">${receipt?`<div class="loop-receipt">✓ ${receipt}</div>`:buttons}<div class="loop-powered"><span>↻</span> Powered by <b>IntroLoop</b><small>${receipt?'Response shared with Instinct':'Your response updates Instinct'}</small></div></div>`}
+function storyMail(owner,from,to,subject,body,action){return `<div class="device-owner">${owner}</div><div class="story-mail"><div class="mail-top"><span style="color:#4285f4;font-size:23px">M</span><b>Gmail</b><span>Search mail</span><i>${owner.split(' · ')[0]}</i></div><div class="mail-tools">←　 ▣　 ▤　 ⋮ <span>Inbox</span></div><div class="story-mail-content"><h2>${subject}</h2><div class="mail-sender"><span class="avatar">${from[0]}</span><div><b>${from}</b><small>To: ${to}</small></div><span>Just now</span></div><div class="story-body">${body}</div><div class="story-mail-action">${action}</div></div></div>`}
+function waDraw(){
+ if(!$('waChat'))return;
+ const contact=waChoice==='maya'?'Maya':'Jordan',full=waChoice==='maya'?'Maya Patel':'Jordan Lee';
+ const labels=['A new portfolio signal','Choose who can help','Confirm your choice','Email sent · waiting for a response','Daniel confirms the route','Daniel confirmed · contact invited','Contact responds','Contact accepted · ask Emma','Emma responds','Both people are ready','Introduction sent','Ask about the meeting','Feedback received','Company record updated'];
+ $('storyLabel').textContent=`${waPhase+1} / 14 · ${waPaused?'Introduction paused':labels[waPhase]}`;
+ const mails={daniel:{to:'Daniel Brooks',subject:'Can you connect us with Maya?',body:'<p>Hi Daniel,</p><p>Emma at Relay AI needs help with insurer security reviews. Would you be comfortable introducing her to Maya?</p><p>Confirm below and I’ll ask Maya on your behalf.</p>'},contact:{to:full,subject:'Open to meeting Emma?',body:`<p>Hi ${contact},</p><p>${waChoice==='maya'?'Daniel suggested we connect you with Emma':'Sarah would like to connect you with Emma'}, founder of Relay AI.</p><p>Would you be open to sharing advice on insurer security reviews?</p>`},emma:{to:'Emma Davis',subject:`Would you like to meet ${contact}?`,body:`<p>Hi Emma,</p><p>${contact} is happy to help with insurer security reviews. Shall I introduce you?</p>`}};
+ const incoming=(t,source='')=>`<div class="wa-message wa-reply">${t}${source?`<div class="wa-event">↻ ${source} · IntroLoop</div>`:''}<span class="wa-time">Instinct</span></div>`;
+ const preview=(key)=>{const m=mails[key];const threshold={daniel:5,contact:7,emma:9}[key];const status=waPhase>=threshold?'Confirmed':waPaused&&waPhase===threshold-1?'Declined':'Awaiting response';return `<div class="wa-mail-preview"><div class="wa-mail-top">✉ EMAIL SENT <span>✓</span></div><small>To ${m.to}</small><strong>${m.subject}</strong><div class="wa-mail-copy">${m.body}</div><div class="wa-mail-foot">${status} · IntroLoop</div></div>`};
+ let h='';
+ if(waPhase>=1)h+=incoming(`<strong>Relay AI needs a hand.</strong><p>3 insurance pilots are stuck in security reviews. Emma needs an experienced operator.</p><button class="wa-option ${waPhase>=2&&waChoice==='maya'?'chosen':''}" data-wa-contact="maya" ${waPhase!==1?'disabled':''}><span class="avatar">MP</span><span><strong>Maya Patel</strong><small>Insurance deployments · via Daniel</small></span></button><button class="wa-option ${waPhase>=2&&waChoice==='jordan'?'chosen':''}" data-wa-contact="jordan" ${waPhase!==1?'disabled':''}><span class="avatar">JL</span><span><strong>Jordan Lee</strong><small>Enterprise sales · direct contact</small></span></button>`);
+ if(waPhase>=3){h+=`<div class="wa-message wa-outgoing">Let’s connect Emma with ${contact}.<span class="wa-time">Sarah ✓✓</span></div>`;h+=incoming(waChoice==='maya'?`I’ve emailed Daniel to confirm the connection.${preview('daniel')}`:`I’ve asked Jordan if he’s open to an introduction.${preview('contact')}`)}
+ if(waPhase>=5&&waChoice==='maya')h+=incoming(`Daniel confirmed he knows Maya and is happy to help. I’ve sent Maya the request.${preview('contact')}`,'Daniel confirmed');
+ if(waPhase>=7)h+=incoming(`${contact} accepted. I’ve asked Emma to confirm too.${preview('emma')}`,`${contact} accepted`);
+ if(waPhase>=9)h+=incoming(`Emma accepted too. Both are ready to connect.`,'Emma accepted');
+ if(waPhase>=10)h+=incoming(`Introduction sent to Emma and ${contact}.`);
+ if(waPhase>=11)h+=incoming(`I’ve emailed Emma privately for feedback. Waiting for her response.`);
+ const outcomes={useful:'Emma found the meeting useful.',notyet:'Emma hasn’t met with '+contact+' yet. The introduction stays open.',notfit:'Emma said the meeting wasn’t the right fit. I’ve recorded that for future matching.'};
+ if(waPhase>=12)h+=incoming(outcomes[waFeedback]+(waNote?`<p class="wa-feedback-note">“${escapeLoop(waNote)}”</p>`:'')+' Relay’s record is updated.','Emma’s feedback');
+ if(waPaused)h+=incoming(`${waPaused} No introduction will be sent.`,'Response received');
+ $('waChat').innerHTML=h;$('waChat').scrollTop=$('waChat').scrollHeight;
+ let action='';
+ if(waPhase===0)action=storyButton('Receive update →',1);
+ if(waPhase===1)action='<span class="wa-note">Select a contact above</span>';
+ if(waPhase===2)action=storyButton(`Let’s connect Emma with ${contact}`,3);
+ if(waPhase===3)action=storyButton(waChoice==='maya'?'View Daniel’s inbox →':'View Jordan’s inbox →',waChoice==='maya'?4:6);
+ if(waPhase===5)action=storyButton('View Maya’s inbox →',6);
+ if(waPhase===7)action=storyButton('View Emma’s inbox →',8);
+ if(waPhase===9)action=storyButton('Send introduction →',10);
+ if(waPhase===10)action=storyButton('Follow up after the meeting →',11);
+ if(waPhase===12)action=storyButton('View updated CRM →',13);
+ if(waPaused)action='<button class="btn" data-action="wa-replay">Try another introduction ↺</button>';
+ $('phoneAction').innerHTML=action;
+ let panel='';
+ if(waPhase===4||waPhase===5){let m=mails.daniel;panel=storyMail('DANIEL · VC PARTNER’S GMAIL','Instinct for Sarah',m.to,m.subject,m.body,loopActions(loopButton('Yes, ask Maya','daniel-yes')+loopButton('Can’t help this time','daniel-no',true),waPaused?'Can’t help this time':waPhase===5?'Daniel confirmed':''))}
+ if(waPhase===6||waPhase===7){let m=mails.contact;panel=storyMail(`${contact.toUpperCase()} · CONTACT’S GMAIL`,waChoice==='maya'?'Instinct on behalf of Daniel':'Instinct for Sarah',m.to,m.subject,m.body,loopActions(loopButton('Happy to connect','contact-yes')+loopButton('Not now','contact-no',true),waPaused?'Not now':waPhase===7?`${contact} accepted`:''))}
+ if(waPhase===8||waPhase===9){let m=mails.emma;panel=storyMail('EMMA · FOUNDER’S GMAIL','Instinct',m.to,m.subject,m.body,loopActions(loopButton('Yes, introduce us','emma-yes')+loopButton('Not now','emma-no',true),waPaused?'Not now':waPhase===9?'Emma accepted':''))}
+ if(waPhase===10)panel=storyMail(`EMMA + ${contact.toUpperCase()} · SHARED EMAIL`,'Sarah Chen via Instinct',`Emma Davis, ${full}`,`Emma ↔ ${contact} · Relay AI`,`<span class="badge">Sent to both</span><p>Emma, meet ${contact} — experienced in enterprise deployments.</p><p>${contact}, Emma is building Relay AI and preparing for insurer security reviews.</p><p>I’ll leave you two to find a time.</p>`,'<div class="intro-sent">✓ Both accepted · introduction sent</div>');
+ if(waPhase===11||waPhase===12)panel=storyMail('EMMA · FOUNDER’S GMAIL','Instinct','Emma Davis only',`How was your meeting with ${contact}?`,`<p>Hi Emma,</p><p>Did the conversation help with the security reviews?</p>${waPhase===11?'<label class="loop-note-label" for="loopNote">Optional note</label><textarea id="loopNote" class="loop-note" rows="2" placeholder="What helped? e.g. a security-review checklist"></textarea>':''}`,loopActions(loopButton('Useful meeting','feedback-useful')+loopButton('Not the right fit','feedback-notfit',true)+loopButton('Haven’t met yet','feedback-notyet',true),waPhase===12?'Feedback recorded':''));
+ if(waPhase===13)panel=`<div class="device-owner">SARAH · FUND CRM</div><div class="story-crm"><div class="crm-top">Portfolio <span class="badge">✓ Record updated</span></div><div class="crm-company"><span class="avatar">R</span><div><h2>Relay AI</h2><small>Insurance AI · Emma Davis</small></div></div><div class="row"><span>Support request</span><b>Insurer security reviews</b></div><div class="row"><span>Introduction</span><b>${full} · ${waFeedback==='notyet'?'awaiting meeting':'completed'}</b></div><div class="row updated"><span>Meeting outcome</span><b>${{useful:'Useful',notyet:'Not yet held',notfit:'Not the right fit'}[waFeedback]} · Emma confirmed</b></div><div class="row updated"><span>Founder’s note</span><b>${escapeLoop(waNote||'No note added')}</b></div><div class="row"><span>Pilot blocker</span><b>Still open</b></div><div class="crm-source">Source: Emma’s IntroLoop response</div><div class="crm-history">✓ Both accepted　 ✓ Intro sent　 ✓ Feedback recorded</div></div>`;
+ $('storyPanel').innerHTML=panel;$('storyLayout').classList.toggle('split',waPhase>=4);
+}
+let waNote='';
+function escapeLoop(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function loopEvent(event){if(waPaused)return;const expected={'daniel-yes':4,'daniel-no':4,'contact-yes':6,'contact-no':6,'emma-yes':8,'emma-no':8,'feedback-useful':11,'feedback-notfit':11,'feedback-notyet':11};if(waPhase!==expected[event])return;if(event.endsWith('-no')){waPaused=event==='daniel-no'?'Daniel can’t help with this connection.':event==='contact-no'?`${waChoice==='maya'?'Maya':'Jordan'} isn’t available right now.`:'Emma isn’t ready for this introduction.'}else if(event.startsWith('feedback-')){waFeedback=event.slice(9);waNote=$('loopNote').value.trim();waPhase=12;if(waChoice==='maya'){s.colleagueConfirmed=true;s.approved=true;s.permissionAccepted=true;s.introduced=true;s.feedbackSaved=true;s.feedback=waFeedback==='useful'?'useful':waFeedback==='notyet'?'not-yet':'not-fit';s.note=waNote;response=s.feedback;save()}}else waPhase++;waDraw()}
+function chooseWa(contact){if(step!==5||waPhase!==1)return;waChoice=contact;waPhase=2;waDraw()}
+function startWa(){clearWa();waPhase=0;waChoice='maya';waPaused='';waFeedback='useful';waNote='';waDraw()}
+
+function render(){const pos=stepOrder.indexOf(step);$('nav').innerHTML=stepOrder.map((id,i)=>`<button data-go="${id}" class="${step===id?'active':''}" ${step===id?'aria-current="step"':''}><span class="num">${i+1}</span><span>${names[id]}<small>${['LinkedIn · email · job post','Scout enriches','Find the right route','Email only','Email only','WhatsApp preview'][id]}</small></span></button>`).join('');$('title').textContent=titles[step];$('agent').innerHTML=step===0?'Three scattered sources':`<strong>${['','Scout','Atlas','Bridge','Echo','Instinct'][step]}</strong> · ${['','Portfolio intelligence','Network intelligence','Introduction coordination','Feedback & learning','Personal assistant'][step]}`;$('surface').innerHTML=[scattered,profile,atlas,bridge,echo,whatsapp][step]();$('count').textContent=`${pos+1} / 6`;$('caption').textContent=captions[step];$('back').disabled=pos===0;$('next').textContent=step===4?'Start again ↺':'Next →';if(step===5)startWa()}
+
+function reset(){clearWa();s={...empty};response='';profileTab='sheet';save();go(0);notify('Demo restarted')}
+function why(){dialog('Why Maya for Relay?',`<span class="badge">Evidence, not a relationship score</span><div class="row"><span>Founder’s explicit need</span><b>Insurer security-review advice</b></div><blockquote>Emma: “Someone who has navigated insurer security reviews and enterprise deployment.”</blockquote><div class="row"><span>Relevant expertise</span><b>Insurance software deployments</b></div><p>Maya’s fictional profile records experience leading insurer deployments.</p><div class="row"><span>Relationship route</span><b>${s.colleagueConfirmed?'Confirmed by Daniel':'Not yet confirmed'}</b></div>${s.colleagueConfirmed?'<blockquote>Daniel: “I worked with Maya on two insurer deployments. Happy to ask her.”</blockquote>':'<p>A shared calendar record suggests Daniel may know Maya. Atlas asks him rather than treating that as a strong relationship.</p>'}<p class="note">All records in this prototype are fictional. No guaranteed approval, buyer access, or revenue is claimed.</p>`)}
+function network(){dialog('Maya Patel',`<div style="text-align:center;margin-bottom:18px"><span class="avatar" style="width:65px;height:65px;font-size:23px;margin:auto">MP</span><p style="font-size:16px;color:#3f3448;margin:10px 0 3px">Former VP, Enterprise Solutions</p><span class="badge">Insurance software · Deployment</span></div><div class="detail-label">Your relationship</div><div class="network-person">${person('Sarah Chen','SC','Direct relationship unverified')}</div><div class="detail-label">Someone your team knows</div><div class="network-person">${person('Daniel Brooks','DB',s.colleagueConfirmed?'Worked with Maya · willing to ask':'Shared meeting record · ask to confirm')}</div><div class="detail-label">Expertise</div><p>Insurer security reviews, procurement preparation, and enterprise software deployments.</p><div class="row"><span>Maya’s availability</span><b>${s.permissionAccepted?'Agreed to this conversation':'Not yet confirmed'}</b></div>${s.feedbackSaved?`<div class="row"><span>Introduction outcome</span><b>${s.feedback==='useful'?'Useful, confirmed by Emma':'Founder follow-through recorded'}</b></div>`:''}<p class="note">Contact information and evidence are illustrative, with no live account connections.</p>`)}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.go!==undefined){go(+b.dataset.go);return}if(b.dataset.profile){profileTab=b.dataset.profile;render();return}if(b.dataset.response){if($('note'))s.note=$('note').value;response=b.dataset.response;s.feedbackSaved=false;render();return}if(b.dataset.loop){loopEvent(b.dataset.loop);return}if(b.dataset.story!==undefined){waPhase=+b.dataset.story;waDraw();return}if(b.dataset.waContact){chooseWa(b.dataset.waContact);return}switch(b.dataset.action){case'wa-replay':startWa();break;case'ask-daniel':dialog('Atlas checks with Daniel',`<div class="badge">Internal email · sample reply</div><p><strong>Atlas → Daniel</strong></p><blockquote>Relay needs help with insurer security reviews. Do you know Maya well enough to ask whether she’d welcome an introduction?</blockquote><p><strong>Daniel → Atlas</strong></p><blockquote>I worked with Maya on two insurer deployments. Happy to ask her—she’s especially good at security-review preparation.</blockquote><div class="actions"><button class="btn primary" data-action="confirm-route">Use Daniel’s confirmed route →</button></div>`);break;case'confirm-route':s.colleagueConfirmed=true;save();$('modal').close();render();notify('Daniel’s confirmation added to the network');break;case'why-match':why();break;case'network':network();break;case'not-now':dialog('No outreach made',`<p>This suggestion can wait. The source evidence remains available for a later review.</p><button class="btn" data-action="dismiss">Return to inbox</button>`);break;case'approve':if(!s.colleagueConfirmed)return;s.draft=$('draft').value;s.approved=true;save();render();notify('Approval recorded. Permission requests simulated.');break;case'accept':if(!s.approved)return;s.permissionAccepted=true;save();render();break;case'introduce':if(!s.approved||!s.permissionAccepted)return;s.introduced=true;save();render();notify('Introduction simulated. No email was sent.');break;case'feedback':if(!s.introduced||!response)return;s.feedback=response;s.note=$('note').value;s.feedbackSaved=true;save();render();notify('Founder feedback saved in this browser');break;case'updated-records':dialog('Two records updated',`<div class="detail-label">Relay AI</div><p>${s.feedback==='useful'?'Support received: Maya’s advice was useful.':'Follow-through updated from Emma’s reply.'} The security-review blocker stays open unless the founder confirms it is resolved.</p><div class="detail-label">Maya Patel</div><p>${s.feedback==='useful'?'A useful introduction in the insurer-deployment context is now recorded.':'Feedback informs the next matching or follow-up decision.'} This does not imply permanent availability.</p><div class="actions"><button class="btn primary" data-action="open-profile">Open company profile →</button><button class="btn" data-action="open-network">Open network profile</button></div>`);break;case'open-profile':$('modal').close();go(1);break;case'open-network':$('modal').close();network();break;case'company-details':dialog('Relay AI · source-backed profile',`<p>Scout combined three updates into one company record:</p><div class="row"><span>Partnership</span><b>Harbor Mutual pilot · LinkedIn</b></div><div class="row"><span>Explicit need</span><b>Review preparation · investor email</b></div><div class="row"><span>Hiring</span><b>Solutions Engineer · job posting</b></div><p>Profile fields retain the source, date, and access restrictions.</p>`);break;case'other-company':dialog('Demo scope',`<p>The other rows provide portfolio context. Relay AI is the company with an interactive profile in this demo.</p>`);break;case'tools':dialog('Four tools, working in the background',`<div class="row"><span>akta.pro</span><b>Company enrichment, market and peer context</b></div><div class="row"><span>Nicrron × Ninoo</span><b>Model calls and application building</b></div><div class="row"><span>Roundtable</span><b>Shared agent records and handoffs</b></div><div class="row"><span>PRISM by Block Convey</span><b>Traces and evidence evaluation</b></div><p>LinkedIn, email, and calendar access require separate authorized integrations. PRISM does not certify relationships; colleague confirmation supplies evidence.</p><span class="badge">All integrations simulated in this prototype</span>`);break;case'dismiss':$('modal').close();break}});
+$('back').onclick=()=>go(stepOrder[Math.max(0,stepOrder.indexOf(step)-1)]);$('next').onclick=()=>step===4?reset():go(stepOrder[stepOrder.indexOf(step)+1]);$('reset').onclick=reset;$('close').onclick=()=>$('modal').close();document.addEventListener('keydown',e=>{if(e.target.matches('textarea,input,select')||$('modal').open)return;if(e.key==='ArrowRight'&&step!==4)go(stepOrder[stepOrder.indexOf(step)+1]);if(e.key==='ArrowLeft'&&step!==0)go(stepOrder[stepOrder.indexOf(step)-1])});render();
+</script></body></html>

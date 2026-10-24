@@ -220,7 +220,7 @@ Run `python3 agent.py akta` for status, `python3 agent.py enrich --company "Nort
 ## Run it
 
 ```bash
-npm start            # serves the demo page (index.html) at http://localhost:3000
+Demo page: `index.html` is Giulio's original Introdesk demo page, implemented exactly as he built it (self-contained, no external assets). `mockups.html` holds nine more investor use-case mockups, and `npm start` serves the folder.
 python3 agent.py demo        # full loop with sample data
 python3 agent.py signals data/signals.sample.csv   # scattered portfolio updates in
 python3 agent.py detect                            # needs out, each with quoted evidence
@@ -253,7 +253,7 @@ No dependencies. Python 3 standard library only. State is one local
 third-party server.
 
 ## Files
-- `index.html` — the merged demo page: the six-step insurance flow plus the investor use-case mockups
+Demo page: `index.html` is Giulio's original Introdesk demo page, implemented exactly as he built it (self-contained, no external assets). `mockups.html` holds nine more investor use-case mockups, and `npm start` serves the folder.
 - `agent.py` — the whole agent: ingest, match, draft, follow-ups, learning, analytics
 - `SKILL.md` — instructions any AI agent (Muse etc.) follows to run this script
 - `data/contacts.sample.csv` — sample enriched contact list for the demo
