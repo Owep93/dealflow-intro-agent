@@ -72,13 +72,27 @@ python3 agent.py feed
 ```
 
 ## Connectors (where contacts and correspondence come from)
+Run `python3 agent.py connectors` for the full map. In short, work across
+every channel the investor uses, through the connections YOU (the host
+agent) hold for them:
 - **Email (Gmail / Outlook):** export contacts and search threads for intro
   outcomes. If a thread shows a meeting booked, record `meeting` yourself
   and tell the partner — do not wait to be told.
-- **LinkedIn:** export Connections (Settings > Data privacy > Get a copy),
-  then `ingest` the CSV. Enrich topics from headline + current role.
+- **LinkedIn:** export Connections, then `ingest`. Enrich topics from
+  headline + current role. Founder posts and job changes are signals.
+- **X, Instagram, Threads:** founder posts (launches, raises, hires) are
+  signals, write them into the signals CSV with source `x_post` /
+  `linkedin_post` etc. DMs are a send channel where the contact's card
+  says it is their best channel.
+- **WhatsApp / Telegram:** the backchannel. One-tap intro asks and nudges
+  go here when the contact's `channel` says so.
 - **Slack:** post the `feed` output to the firm's #intros channel after
   every `record` call, so the whole firm stays updated.
+- **Discord:** founder communities; treat posts like other social signals.
+- **Calendar:** a booked meeting is ground truth. When you see one follow
+  an intro, record the outcome without waiting to be told.
+Always send on the contact's best channel (`channel` / `socials` on their
+card), never default to cold email when a warm channel exists.
 
 ## Demo
 ```bash

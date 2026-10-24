@@ -219,6 +219,40 @@ def show_agent() -> None:
 # Data model
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
+# Connector map: every channel an investor actually lives on.
+# The host agent (the VC's own Muse / assistant) holds each connection;
+# this script consumes what they export and queues sends back per channel.
+# --------------------------------------------------------------------------
+
+CONNECTORS = {
+    "email":     {"gives": "contacts, founder updates, intro threads",
+                  "reach": "intro asks, follow-ups", "connect": "Gmail / Outlook via host agent"},
+    "linkedin":  {"gives": "connections graph, founder posts, job changes",
+                  "reach": "connection requests, InMail / DM intro asks", "connect": "Connections export or host agent"},
+    "x":         {"gives": "founder posts (launches, raises, hires), warm replies",
+                  "reach": "DM intro asks, public warm-up engagement", "connect": "X account via host agent"},
+    "instagram": {"gives": "founder / operator presence, story updates",
+                  "reach": "DM intro asks", "connect": "Instagram via host agent"},
+    "threads":   {"gives": "founder posts and conversations",
+                  "reach": "DM intro asks", "connect": "Threads via host agent"},
+    "whatsapp":  {"gives": "the real backchannel: founder and operator chats",
+                  "reach": "one-tap intro asks, nudges", "connect": "WhatsApp via host agent"},
+    "telegram":  {"gives": "founder and community chats",
+                  "reach": "DM intro asks", "connect": "Telegram via host agent"},
+    "slack":     {"gives": "fund's internal channels, portfolio community",
+                  "reach": "firm feed, partner alerts", "connect": "Slack workspace webhook / app"},
+    "discord":   {"gives": "founder communities, hackathon and DAO rooms",
+                  "reach": "DM intro asks, community posts", "connect": "Discord via host agent"},
+    "calendar":  {"gives": "meeting outcomes (the ground truth an intro worked)",
+                  "reach": "meeting holds and bookings (L2+ / L4)", "connect": "Google Calendar via host agent"},
+}
+
+def connectors() -> None:
+    print("Channels this agent works across (connected through your own agent):")
+    for name, c in CONNECTORS.items():
+        print(f"  {name:<10} reads: {c['gives']}\n  {'':<10} sends: {c['reach']}  [{c['connect']}]")
+
 @dataclass
 class Contact:
     id: str
@@ -230,6 +264,8 @@ class Contact:
     strength: int = 3                            # 1 weak .. 5 close
     source: str = ""                             # email | linkedin | manual
     owner_partner: str = ""                      # which partner knows them
+    socials: list = field(default_factory=list)  # e.g. ["x:@dana", "linkedin:dana-whitfield"]
+    channel: str = ""                            # best way to reach them: whatsapp | x | email ...
     wins: int = 0                                # intros that produced an outcome
     fails: int = 0                               # intros passed / no response
     scratched: bool = False
@@ -402,6 +438,9 @@ def action(need_id: str) -> None:
     print(f"\nRecommended action: introduction to {best['name']}, {best['role']}, {best['company']}")
     print(f"Evidenced relationship: strength {best['strength']}/5, source {best['source']}, "
           f"known by {best['owner_partner'] or 'the fund'}, past intro wins {best['wins']}")
+    reach = best.get("channel") or (best.get("socials") or ["email"])[0].split(":")[0]
+    handles = ", ".join(best.get("socials") or []) or "email on file"
+    print(f"Best reached via: {reach} ({handles}) — the ask goes out on that channel, not a cold email")
     iid = f"intro_{len(state['intros']) + 1:03d}"
     state["intros"].append(asdict(Intro(
         id=iid, need=need["need"], portfolio_company=need["company"],
@@ -474,6 +513,8 @@ def ingest_csv(path: str, partner: str = "") -> None:
                 strength=int(row.get("strength") or 3),
                 source=row.get("source", "csv").strip(),
                 owner_partner=partner or row.get("owner_partner", ""),
+                socials=[s.strip() for s in (row.get("socials") or "").split("|") if s.strip()],
+                channel=(row.get("channel") or "").strip(),
             )))
             known.add(key)
             added += 1
@@ -794,6 +835,7 @@ def main() -> None:
     sub.add_parser("run")        # one proactive cycle
     w = sub.add_parser("watch"); w.add_argument("--interval", type=int, default=60)
     sub.add_parser("agent")      # trust profile: level, XP, unlocks
+    sub.add_parser("connectors") # every channel the agent works across
     a = p.parse_args()
     if a.cmd == "demo": demo()
     elif a.cmd == "signals": ingest_signals(a.csv)
@@ -811,6 +853,7 @@ def main() -> None:
     elif a.cmd == "run": run_cycle()
     elif a.cmd == "watch": watch(a.interval)
     elif a.cmd == "agent": show_agent()
+    elif a.cmd == "connectors": connectors()
 
 if __name__ == "__main__":
     main()

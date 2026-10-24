@@ -99,6 +99,28 @@ In the demo you watch it happen: one meeting and one "useful" resolution
 take the agent from L1 to L2 live. Automation here is *earned*, never
 given, and a human always approves the first intro to anyone.
 
+## Connected to every channel an investor actually uses
+
+Investors do not live in one inbox. The agent works across all of it,
+through the VC's own connected agent (bring your own agent means the
+connections are the VC's, held by their assistant, never by this script):
+
+| Channel | The agent reads | The agent sends |
+|---|---|---|
+| Email (Gmail / Outlook) | Contacts, founder updates, intro threads | Intro asks, follow-ups |
+| LinkedIn | Connections graph, founder posts, job changes | DM intro asks |
+| X | Founder posts: launches, raises, hires | DM intro asks, warm replies |
+| Instagram / Threads | Founder and operator presence, updates | DM intro asks |
+| WhatsApp / Telegram | The real backchannel with founders and operators | One-tap intro asks, nudges |
+| Slack | The firm's internal channels | Firm feed, partner alerts |
+| Discord | Founder communities | DM intro asks |
+| Calendar | Meeting outcomes, the ground truth an intro worked | Holds and bookings (earned levels only) |
+
+Every contact carries their handles and their **best channel**, and every
+action card says so: the ask goes out where that person actually answers,
+not as another cold email. Founder posts are signals too: a launch post on
+LinkedIn or a raise teased on X feeds the same need detection as an email.
+
 ## Run it
 
 ```bash
