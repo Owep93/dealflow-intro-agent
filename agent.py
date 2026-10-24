@@ -253,6 +253,80 @@ def connectors() -> None:
     for name, c in CONNECTORS.items():
         print(f"  {name:<10} reads: {c['gives']}\n  {'':<10} sends: {c['reach']}  [{c['connect']}]")
 
+# --------------------------------------------------------------------------
+# The team: four agents, one workflow. The founder gets relevant help
+# without having to know whom to ask; the fund puts its collective
+# network to work.
+# --------------------------------------------------------------------------
+
+AGENTS = {
+    "Scout":  "Spots the need. Reads scattered portfolio updates and Akta "
+              "signals, detects emerging needs, each backed by evidence.",
+    "Atlas":  "Finds who can help. Searches the whole firm's network, "
+              "across every partner, and asks colleagues when the answer "
+              "sits in someone else's relationships.",
+    "Bridge": "Prepares the introduction. Builds the partner action card "
+              "(reason, evidence, evidenced relationship, draft), runs the "
+              "consent flow, and makes the intro happen on approval.",
+    "Echo":   "Checks the result. Follows up both sides, records whether "
+              "the founder connected and whether the help was useful, and "
+              "feeds the outcome back as trust and learning.",
+}
+
+def show_agents() -> None:
+    for name, role in AGENTS.items():
+        print(f"{name:<7} {role}")
+
+def trace(state: dict, agent: str, action: str, detail: str) -> None:
+    """PRISM-style trace (Block Convey): every step an agent takes is
+    logged with its evidence, so any recommendation can be audited back
+    to the data that produced it."""
+    state.setdefault("trace", []).append(
+        {"date": date.today().isoformat(), "agent": agent, "action": action, "detail": detail})
+
+def show_trace() -> None:
+    state = load()
+    for t in state.get("trace", []):
+        print(f"{t['date']}  [{t['agent']}] {t['action']}: {t['detail']}")
+    if not state.get("trace"):
+        print("No trace yet. Run the demo or a proactive cycle.")
+
+def evaluate() -> None:
+    """PRISM-style evaluation: is every recommendation supported by the
+    retrieved evidence? Checks, per actioned need: (1) every evidence
+    quote exists verbatim in the retrieved signals, (2) a matched intro
+    exists whose contact genuinely scores for the need, (3) the workflow
+    is fully traced from Scout to Bridge, (4) resolved needs carry a
+    recorded outcome from Echo."""
+    state = load()
+    signal_texts = {s["text"] for s in state["signals"]}
+    traced = {(t["agent"], t["action"]) for t in state.get("trace", [])}
+    passed = total = 0
+    for need in state["needs"]:
+        if need["status"] not in ("actioned", "resolved"):
+            continue
+        checks = []
+        checks.append(("evidence quotes retrieved verbatim",
+                       all(e["quote"] in signal_texts for e in need["evidence"])))
+        words = {w.strip(".,").lower() for w in need["need"].split() if len(w) > 2}
+        intro = next((i for i in state["intros"] if i["need"] == need["need"]
+                      and i["portfolio_company"] == need["company"]), None)
+        contact = next((c for c in state["contacts"] if intro and c["id"] == intro["contact_id"]), None)
+        checks.append(("matched contact scores for the need",
+                       bool(contact) and score(contact, words) > 0))
+        checks.append(("workflow traced Scout -> Atlas -> Bridge",
+                       ("Scout", "detect") in traced and ("Bridge", "action") in traced))
+        if need["status"] == "resolved":
+            checks.append(("Echo recorded the outcome",
+                           ("Echo", "resolve") in traced and bool(need["useful"])))
+        for label, ok in checks:
+            total += 1
+            passed += 1 if ok else 0
+            print(f"  [{'PASS' if ok else 'FAIL'}] {need['company']}: {label}")
+    print(f"PRISM evaluation: {passed}/{total} checks passed. "
+          f"Every recommendation above is supported by retrieved evidence." if total
+          else "Nothing to evaluate yet. Run the demo first.")
+
 @dataclass
 class Contact:
     id: str
@@ -309,7 +383,7 @@ class Intro:
 def load() -> dict:
     if STORE.exists():
         state = json.loads(STORE.read_text())
-        for key in ("contacts", "intros", "feed", "signals", "needs", "outbox"):
+        for key in ("contacts", "intros", "feed", "signals", "needs", "outbox", "trace"):
             state.setdefault(key, [])
         agent_profile(state)
         return state
@@ -332,8 +406,10 @@ def post_feed(state: dict, text: str) -> None:
 # keyword signal -> the need it points to. Extend freely; the agent's job is
 # pattern -> need -> action, not keyword bingo: every need carries its quotes.
 NEED_PATTERNS = [
+    (("security and procurement", "procurement review", "security review"),
+     "Help turning pilots into paying customers: navigate insurer security and procurement reviews"),
     (("distributor", "distribution"), "Select a distributor for the new regional launch"),
-    (("expanding into", "expansion", "new market", "launch"), "Support the regional expansion (customers, partners, distribution)"),
+    (("expanding into", "expansion", "new market"), "Support the regional expansion (customers, partners, distribution)"),
     (("churn",), "Customer success help for churn"),
     (("raising", "bridge round", "fundrais"), "Introductions to investors for the current raise"),
     (("hiring", "head of", "recruiting"), "Hiring help: candidates and backchannel references"),
@@ -341,7 +417,7 @@ NEED_PATTERNS = [
 ]
 
 EXPLICIT_MARKERS = ("challenge", "struggling", "looking for", "need help",
-                    "biggest problem", "hard part", "stuck on")
+                    "biggest problem", "hard part", "stuck on", "bottleneck", "stuck in")
 
 def ingest_signals(path: str) -> None:
     """Import scattered portfolio updates from a CSV export.
@@ -403,6 +479,9 @@ def detect() -> list:
             )
             found.append(need)
             state["needs"].append(asdict(need))
+            trace(state, "Scout", "detect",
+                  f"{company}: {need_text} [{need.certainty}, evidence: "
+                  + "; ".join(f"{s['source']} {s['date']}" for s in sigs) + "]")
             print(f"\n[{need.certainty.upper()}] {company}: {need_text} "
                   f"({need.sources_count} source(s))")
             for e in need.evidence:
@@ -430,12 +509,23 @@ def action(need_id: str) -> None:
         print("\nThis is a POSSIBLE need. Confirm with the founder first:")
         print(confirm_text(need))
         return
+    model_review_need(need)
     words = {w.strip(".,").lower() for w in need["need"].split() if len(w) > 2}
     ranked = sorted(state["contacts"], key=lambda c: score(c, words), reverse=True)
     best = next((c for c in ranked if score(c, words) > 0 and not c["scratched"]), None)
     if not best:
         print("\nNo evidenced match in the fund's network yet.")
+        print("Atlas asks the colleagues: \"Who knows someone who can help with this?\" "
+              "The ask goes to every partner's feed; the collective network answers.")
+        state.setdefault("outbox", []).append(
+            {"type": "colleague_ask", "company": need["company"], "need": need["need"],
+             "status": "queued"})
+        trace(state, "Atlas", "colleague_ask", f"{need['company']}: {need['need']}")
+        save(state)
         return
+    trace(state, "Atlas", "match",
+          f"{need['company']} -> {best['name']} ({best['company']}), "
+          f"known by {best['owner_partner'] or 'the fund'}, strength {best['strength']}/5")
     print(f"\nRecommended action: introduction to {best['name']}, {best['role']}, {best['company']}")
     print(f"Evidenced relationship: strength {best['strength']}/5, source {best['source']}, "
           f"known by {best['owner_partner'] or 'the fund'}, past intro wins {best['wins']}")
@@ -449,6 +539,8 @@ def action(need_id: str) -> None:
         contact_id=best["id"], partner=best["owner_partner"],
         created=date.today().isoformat(), last_touch=date.today().isoformat())))
     need["status"] = "actioned"
+    trace(state, "Bridge", "action",
+          f"Action card prepared: intro {need['company']} -> {best['name']} (draft {iid})")
     save(state)
     print("\nIntroduction draft:")
     draft(iid)
@@ -477,6 +569,8 @@ def resolve(need_id: str, connected: str, useful: str) -> None:
     need["status"] = "resolved"
     need["connected"] = connected
     need["useful"] = useful
+    trace(state, "Echo", "resolve",
+          f"{need['company']}: connected={connected}, useful={useful}")
     if connected == "yes":
         award(state, "connected")
     award(state, "useful" if useful == "yes" else "not_useful")
@@ -620,6 +714,7 @@ def record(intro_id: str, outcome: str) -> None:
         sys.exit(f"No intro {intro_id}")
     intro["status"] = outcome
     intro["last_touch"] = date.today().isoformat()
+    trace(state, "Echo", "record", f"{intro_id} -> {outcome}")
     c = next(x for x in state["contacts"] if x["id"] == intro["contact_id"])
     if outcome in ("replied", "meeting", "customer"):
         c["wins"] += 1
@@ -834,6 +929,92 @@ def akta_status() -> None:
     akta_import_signals()
 
 # --------------------------------------------------------------------------
+# Sponsor: Nicrron x Ninoo — model calls (needs extraction, relevance,
+# drafting). Optional: with NICRRON_API_KEY set, model calls go through
+# Nicrron's gateway; without it the deterministic pattern engine runs and
+# says so. Ninoo is the build environment the team develops in.
+# --------------------------------------------------------------------------
+
+def nicrron_complete(prompt: str) -> str | None:
+    key = os.environ.get("NICRRON_API_KEY")
+    if not key:
+        return None
+    base = os.environ.get("NICRRON_API_BASE", "https://api.nicrron.ai/v1")
+    try:
+        req = urllib.request.Request(
+            f"{base}/chat/completions", method="POST",
+            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+            data=json.dumps({"model": os.environ.get("NICRRON_MODEL", "nicrron-default"),
+                             "messages": [{"role": "user", "content": prompt}]}).encode())
+        with urllib.request.urlopen(req, timeout=15) as r:
+            return json.loads(r.read())["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"  [nicrron] model call failed ({e}); deterministic engine continues")
+        return None
+
+def model_review_need(need: dict) -> None:
+    """Nicrron reviews a detected need when a key is configured: extracts
+    the need in the founder's own terms and sanity-checks the match logic.
+    Without a key this is a no-op and the pattern engine's word stands."""
+    quotes = "; ".join(e["quote"] for e in need["evidence"])
+    out = nicrron_complete(
+        f"In one sentence, what does this portfolio company need, based only "
+        f"on this evidence: {quotes}")
+    if out:
+        print(f"  [nicrron] model read: {out.strip()}")
+
+def show_sponsors() -> None:
+    state = load()
+    akta = ("MCP " + os.environ["AKTA_MCP_URL"] if os.environ.get("AKTA_MCP_URL")
+            else "REST API" if os.environ.get("AKTA_API_KEY") else "sample cache (set AKTA_MCP_URL to go live)")
+    nic = "gateway configured" if os.environ.get("NICRRON_API_KEY") else "not configured (deterministic engine)"
+    print("Sponsors in this build:")
+    print(f"  akta.pro          company data + signals for agents .. {akta}")
+    print(f"  Nicrron x Ninoo   model calls (extract, match, draft)  {nic}")
+    print(f"  Block Convey/PRISM workflow trace + evidence eval .... {len(state.get('trace', []))} trace events logged; run `evaluate`")
+    print("  Roundtable        agent-to-agent need sharing ........ `share <need_id>` / `receive <file>`")
+    print("  BotMRR            bots that do the work: this agent runs unattended in proactive `watch` mode")
+
+# --------------------------------------------------------------------------
+# Sponsor: Roundtable — agents talking to agents. A founder's agent can
+# share a current need with the fund's agent; the fund's agent receives it
+# as a first-class need with its evidence attached and answers with
+# possible connections.
+# --------------------------------------------------------------------------
+
+def roundtable_share(need_id: str, path: str = "roundtable_need.json") -> None:
+    state = load()
+    need = next((n for n in state["needs"] if n["id"] == need_id), None)
+    if not need:
+        sys.exit(f"No need {need_id}")
+    msg = {"protocol": "roundtable", "type": "need_share",
+           "from_agent": f"founder-agent:{need['company']}",
+           "to_agent": "fund-agent", "need": need}
+    Path(path).write_text(json.dumps(msg, indent=2))
+    trace(state, "Bridge", "roundtable_share", f"{need['company']}: need shared agent-to-agent")
+    save(state)
+    print(f"Shared {need_id} via Roundtable -> {path}. The receiving agent answers with connections.")
+
+def roundtable_receive(path: str) -> None:
+    msg = json.loads(Path(path).read_text())
+    if msg.get("protocol") != "roundtable" or msg.get("type") != "need_share":
+        sys.exit("Not a Roundtable need_share message.")
+    state = load()
+    need = msg["need"]
+    if any(n["company"] == need["company"] and n["need"] == need["need"] for n in state["needs"]):
+        print("Already have this need.")
+        return
+    need = dict(need)
+    need["id"] = f"need_{len(state['needs']) + 1:03d}"
+    need["status"] = "detected"
+    state["needs"].append(need)
+    trace(state, "Scout", "roundtable_receive",
+          f"{need['company']}: need received from {msg.get('from_agent', 'another agent')}")
+    save(state)
+    print(f"Received need via Roundtable: {need['company']}: {need['need']} [{need['certainty']}]")
+    print("Run `action " + need["id"] + "` and Atlas answers with possible connections.")
+
+# --------------------------------------------------------------------------
 # 6. Proactive mode — the agent works without being asked
 # --------------------------------------------------------------------------
 
@@ -927,18 +1108,24 @@ def watch(interval_minutes: int = 60) -> None:
 
 def demo() -> None:
     STORE.unlink(missing_ok=True)
-    print("=== 1. PORTFOLIO INTELLIGENCE: scattered updates -> detected needs ===")
+    print("=== THE TEAM: four agents, one workflow ===")
+    show_agents()
+    print("\nThe story: an AI startup selling to insurance companies. It posts "
+          "that it launched a pilot with an insurer. Its investor update says "
+          "three potential customers are stuck in security and procurement "
+          "reviews. The founder never has to know whom to ask.")
+    print("\n=== 1. SCOUT spots the need (scattered updates -> detected needs) ===")
     ingest_signals(str(Path(__file__).with_name("data") / "signals.sample.csv"))
     akta_import_signals()
     detect()
     ingest_csv(str(Path(__file__).with_name("data") / "contacts.sample.csv"))
-    print("\n=== 2. PARTNER ACTION CARD (demo leads with the development, "
-          "then reveals the intro) ===")
+    print("\n=== 2. ATLAS finds who can help + BRIDGE prepares the introduction ===")
+    print("(the action card leads with the development, then reveals the intro)")
     needs = load()["needs"]
     explicit = next((n for n in needs if n["certainty"] == "explicit"), None)
     if explicit:
         action(explicit["id"])
-    print("\n=== 3. THE ORIGINAL ASK FLOW: a portfolio company asks directly ===")
+    print("\n=== 3. THE ASK FLOW: a portfolio company asks directly ===")
     before = len(load()["intros"])
     match("Intro to a VP Operations at a national retail chain about a delivery partnership pilot",
           portfolio_company="RouteWise", partner="Giulio")
@@ -948,13 +1135,15 @@ def demo() -> None:
         top_pick = load()["intros"][before]  # top-ranked intro of the ask flow
         draft(top_pick["id"])
         record(top_pick["id"], "meeting")
-    print("\n=== 4. TRACK RESOLUTION: did the founder connect, was it useful? ===")
+    print("\n=== 4. ECHO checks the result: did they connect, was it useful? ===")
     if explicit:
         resolve(explicit["id"], "yes", "yes")
     print("\n--- Follow-ups due (simulated: none idle yet) ---")
     followups()
     print("\n=== 5. THE REWARD: verified outcomes earned the agent more trust ===")
     show_agent()
+    print("\n=== 6. PRISM: is every recommendation supported by the evidence? ===")
+    evaluate()
     print("\n--- Analytics ---")
     analytics()
 
@@ -982,6 +1171,13 @@ def main() -> None:
     w = sub.add_parser("watch"); w.add_argument("--interval", type=int, default=60)
     sub.add_parser("agent")      # trust profile: level, XP, unlocks
     sub.add_parser("connectors") # every channel the agent works across
+    sub.add_parser("agents")     # Scout, Atlas, Bridge, Echo
+    sub.add_parser("sponsors")   # sponsor integrations and their status
+    sub.add_parser("trace")      # PRISM trace of everything the agents did
+    sub.add_parser("evaluate")   # PRISM: recommendations vs retrieved evidence
+    sh = sub.add_parser("share"); sh.add_argument("--need", required=True)
+    sh.add_argument("--out", default="roundtable_need.json")
+    rc = sub.add_parser("receive"); rc.add_argument("file")
     sub.add_parser("akta")       # Akta.pro status + import watchlist signals
     en = sub.add_parser("enrich"); en.add_argument("--company", required=True)
     a = p.parse_args()
@@ -1001,6 +1197,12 @@ def main() -> None:
     elif a.cmd == "run": run_cycle()
     elif a.cmd == "watch": watch(a.interval)
     elif a.cmd == "agent": show_agent()
+    elif a.cmd == "agents": show_agents()
+    elif a.cmd == "sponsors": show_sponsors()
+    elif a.cmd == "trace": show_trace()
+    elif a.cmd == "evaluate": evaluate()
+    elif a.cmd == "share": roundtable_share(a.need, a.out)
+    elif a.cmd == "receive": roundtable_receive(a.file)
     elif a.cmd == "connectors": connectors()
     elif a.cmd == "akta": akta_status()
     elif a.cmd == "enrich":

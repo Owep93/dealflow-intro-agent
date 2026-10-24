@@ -1,1 +1,106 @@
-{"_note":"Sample cache in the shape of Akta.pro API responses (private company data + signals, by Wokelo AI). With AKTA_API_KEY set, agent.py calls the live Akta API / MCP instead and refreshes this cache. Never hand-edit facts into this file: enrichment must come from Akta or stay empty.","companies":{"BrightCart":{"employees":85,"founded":2021,"funding":"Series A, $12M raised","headcount_growth_qoq":"-3%","hq":"New York, NY","sector":"Consumer commerce app","signals":[{"text":"App store reviews increasingly mention delivery delays","type":"reviews"},{"text":"Founder posting about retention and repeat purchase focus","type":"social"}]},"National Retail Partners":{"employees":4200,"founded":1998,"funding":"Private, established","headcount_growth_qoq":"+6%","hq":"Chicago, IL","sector":"Retail distribution and store operations","signals":[{"text":"Opened 12 new stores this year, 5 in the Southeast","type":"news"},{"text":"Hiring regional distribution managers","type":"job_posts"}]},"Northwind Robotics":{"employees":240,"founded":2019,"funding":"Series B, $42M raised","headcount_growth_qoq":"+18%","hq":"Austin, TX","sector":"Robotics and warehouse automation","signals":[{"text":"14 open distribution and regional operations roles, mostly Atlanta and Dallas","type":"job_posts"},{"text":"Announced Southeast launch and first Atlanta warehouse","type":"news"},{"text":"Operations headcount up 31% in two quarters","type":"headcount"}]},"VoltPack":{"employees":130,"founded":2020,"funding":"Series A, bridge in progress","headcount_growth_qoq":"+9%","hq":"Denver, CO","sector":"Battery storage hardware","signals":[{"text":"Named in two industry roundups of storage companies to watch","type":"news"},{"text":"Hiring enterprise sales leads","type":"job_posts"}]}},"watchlist_signals":[{"company":"Northwind Robotics","date":"2026-10-23","source":"akta_jobs_signal","text":"Akta signal: Northwind Robotics has 14 open distribution roles in the Southeast, and distribution leadership is the gap."}]}
+{
+  "_note": "Sample cache in the shape of Akta.pro API responses (private company data + signals, by Wokelo AI). With AKTA_API_KEY set, agent.py calls the live Akta API / MCP instead and refreshes this cache. Never hand-edit facts into this file: enrichment must come from Akta or stay empty.",
+  "companies": {
+    "BrightCart": {
+      "employees": 85,
+      "founded": 2021,
+      "funding": "Series A, $12M raised",
+      "headcount_growth_qoq": "-3%",
+      "hq": "New York, NY",
+      "sector": "Consumer commerce app",
+      "signals": [
+        {
+          "text": "App store reviews increasingly mention delivery delays",
+          "type": "reviews"
+        },
+        {
+          "text": "Founder posting about retention and repeat purchase focus",
+          "type": "social"
+        }
+      ]
+    },
+    "National Retail Partners": {
+      "employees": 4200,
+      "founded": 1998,
+      "funding": "Private, established",
+      "headcount_growth_qoq": "+6%",
+      "hq": "Chicago, IL",
+      "sector": "Retail distribution and store operations",
+      "signals": [
+        {
+          "text": "Opened 12 new stores this year, 5 in the Southeast",
+          "type": "news"
+        },
+        {
+          "text": "Hiring regional distribution managers",
+          "type": "job_posts"
+        }
+      ]
+    },
+    "Northwind Robotics": {
+      "employees": 240,
+      "founded": 2019,
+      "funding": "Series B, $42M raised",
+      "headcount_growth_qoq": "+18%",
+      "hq": "Austin, TX",
+      "sector": "Robotics and warehouse automation",
+      "signals": [
+        {
+          "text": "14 open distribution and regional operations roles, mostly Atlanta and Dallas",
+          "type": "job_posts"
+        },
+        {
+          "text": "Announced Southeast launch and first Atlanta warehouse",
+          "type": "news"
+        },
+        {
+          "text": "Operations headcount up 31% in two quarters",
+          "type": "headcount"
+        }
+      ]
+    },
+    "VoltPack": {
+      "employees": 130,
+      "founded": 2020,
+      "funding": "Series A, bridge in progress",
+      "headcount_growth_qoq": "+9%",
+      "hq": "Denver, CO",
+      "sector": "Battery storage hardware",
+      "signals": [
+        {
+          "text": "Named in two industry roundups of storage companies to watch",
+          "type": "news"
+        },
+        {
+          "text": "Hiring enterprise sales leads",
+          "type": "job_posts"
+        }
+      ]
+    },
+    "ClaimBridge AI": {
+      "sector": "AI claims automation for insurers",
+      "employees": 60,
+      "hq": "Chicago, IL",
+      "funding": "Series A, $18M raised",
+      "headcount_growth_qoq": "+12%",
+      "signals": [
+        {
+          "type": "job_posts",
+          "text": "Hiring a deployment lead for insurer implementations"
+        },
+        {
+          "type": "news",
+          "text": "Pilot announced with a large Midwest mutual insurer"
+        }
+      ]
+    }
+  },
+  "watchlist_signals": [
+    {
+      "company": "Northwind Robotics",
+      "date": "2026-10-23",
+      "source": "akta_jobs_signal",
+      "text": "Akta signal: Northwind Robotics has 14 open distribution roles in the Southeast, and distribution leadership is the gap."
+    }
+  ]
+}

@@ -32,6 +32,44 @@ The demo sequence:
 The demo **leads with the portfolio development that needs attention**, then
 reveals the introduction as the action the agent recommends.
 
+## The team: Scout, Atlas, Bridge, Echo
+
+Four agents run the workflow, so the founder gets relevant help without
+having to know whom to ask, and the fund puts its collective network to
+work:
+
+- **Scout** spots the need. It reads the scattered updates and Akta
+  signals and detects what is emerging, each need backed by evidence.
+- **Atlas** finds who can help. It searches the whole firm's network,
+  across every partner, and asks the colleagues when the answer sits in
+  someone else's relationships.
+- **Bridge** prepares the introduction: the partner action card (reason,
+  evidence, evidenced relationship, draft), the consent flow, and the
+  intro itself on approval.
+- **Echo** checks the result: follows up both sides, records whether the
+  founder connected and whether the help was useful, and feeds it back
+  as trust and learning.
+
+The demo story is Giulio's: an AI startup selling to insurance companies
+posts that it launched a pilot with an insurer; its investor update says
+three potential customers are stuck in security and procurement reviews.
+Scout names the need ("help turning insurance pilots into paying
+customers"), Atlas finds a colleague's contact who has sold AI software
+to insurers and navigated these reviews, Bridge prepares the intro,
+Echo confirms it landed and helped.
+
+## Sponsors, and how each one is used
+
+| Sponsor | How we use it | Priority |
+|---|---|---|
+| akta.pro | Company news and enriched portfolio profiles via API/MCP. Expansion, launches, partnerships and hiring become triggers for potential introductions. | Core integration |
+| Nicrron × Ninoo | Nicrron for the model calls that extract needs, assess candidate relevance and draft recommendations. Ninoo helps build the application. | Core infrastructure |
+| Block Convey / PRISM | Traces the workflow and evaluates whether recommendations are supported by the retrieved evidence (`trace`, `evaluate`). | Quality and demo proof |
+| Roundtable | A founder's agent shares a current need with the fund's agent, which returns possible connections (`share`, `receive`). | Optional extension |
+| BotMRR | "Bots that do the work": the whole team runs unattended in proactive `watch` mode. | Always on |
+
+Run `python3 agent.py sponsors` for the live status of each integration.
+
 ## The problem
 
 VCs have the contacts. What they do not have is the time.
@@ -165,6 +203,12 @@ python3 agent.py draft --intro intro_001
 python3 agent.py followups
 python3 agent.py record --intro intro_001 --outcome meeting
 python3 agent.py analytics   # stats + analytics.html, the simple interface
+python3 agent.py agents      # Scout, Atlas, Bridge, Echo
+python3 agent.py sponsors    # every sponsor integration and its live status
+python3 agent.py trace       # PRISM trace of everything the agents did
+python3 agent.py evaluate    # PRISM: is each recommendation supported by the evidence?
+python3 agent.py share --need need_001   # Roundtable: share a need agent-to-agent
+python3 agent.py receive roundtable_need.json   # receive one the same way
 ```
 
 No dependencies. Python 3 standard library only. State is one local
