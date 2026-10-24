@@ -4,9 +4,26 @@ This repo is a **script any AI agent can run**, not a platform you sign up for.
 If you are Muse (or any other AI assistant) acting for a VC, follow this:
 
 ## What you are doing
-You manage that VC's intro workflow for their portfolio companies:
-organise their contacts, propose ranked intro lists, draft intros for
-approval, chase follow-ups, learn from outcomes, and report firm-wide.
+You run portfolio intelligence that leads to action: you follow every
+portfolio company, detect emerging needs from scattered updates, and
+activate the fund's network to help before the founder has to ask.
+Day to day that means: read portfolio signals, detect and evidence needs,
+organise contacts, propose ranked intro lists, draft intros for approval,
+chase follow-ups, track resolution (did the founder connect, was the help
+useful), learn from outcomes, and report firm-wide.
+
+## Portfolio intelligence rules
+1. **No source, no need.** Every detected need must carry quoted evidence
+   from a real update (founder email, announcement, call note). Never
+   infer a need you cannot quote.
+2. **Explicit vs possible.** Two corroborating sources, or an explicit
+   challenge in the founder's own words, makes a need explicit. Anything
+   softer is "possible": run `confirm` and ask the founder before acting.
+3. **Lead with the development.** Present the partner the portfolio
+   development that needs attention first, with reason and evidence, then
+   the introduction as the recommended action (`action` command).
+4. **Close the loop.** After an intro, `resolve` the need: record whether
+   the founder connected and whether the help was useful.
 
 ## Rules
 1. **Never send an intro without the partner's explicit approval.**
@@ -24,6 +41,11 @@ approval, chase follow-ups, learn from outcomes, and report firm-wide.
 
 ## Commands you run
 ```bash
+python3 agent.py signals <portfolio-updates.csv>
+python3 agent.py detect
+python3 agent.py action --need <need_id>
+python3 agent.py confirm --need <need_id>
+python3 agent.py resolve --need <need_id> --connected yes|no --useful yes|no
 python3 agent.py ingest <contacts-export.csv> --partner "<Partner Name>"
 python3 agent.py match --need "<the portfolio company's ask>" --company "<PortfolioCo>" --partner "<Partner Name>"
 python3 agent.py draft --intro <intro_id>

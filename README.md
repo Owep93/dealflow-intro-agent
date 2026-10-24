@@ -3,6 +3,28 @@
 **Built for Deal Flow: NYC's First VC Hackathon @ Betaworks (Sat, Oct 24, 2026)**
 Team: Harvey Francois + Giulio Profumo
 
+## Portfolio intelligence that leads to action
+
+> "Our agent follows every portfolio company, detects emerging needs, and
+> activates the fund's network to help, before the founder has to ask."
+
+**Track 3 fit:** turn scattered portfolio data into patterns a fund can act on.
+The demo sequence:
+
+1. **Read scattered updates** — a founder email mentions expansion; a company
+   announcement confirms the launch.
+2. **Identify a need** — distributor selection is an explicit challenge, or a
+   possible need to confirm with the founder first.
+3. **Find help** — match relevant experience with an evidenced relationship
+   in the fund's network.
+4. **Prepare action** — present the partner with the reason, the evidence,
+   and the introduction draft.
+5. **Track resolution** — record whether the founder connected and whether
+   the help was useful.
+
+The demo **leads with the portfolio development that needs attention**, then
+reveals the introduction as the action the agent recommends.
+
 ## The problem
 
 VCs have the contacts. What they do not have is the time.
@@ -43,6 +65,11 @@ assistant they already use). No new platform to learn. *Bring your own agent.*
 
 ```bash
 python3 agent.py demo        # full loop with sample data
+python3 agent.py signals data/signals.sample.csv   # scattered portfolio updates in
+python3 agent.py detect                            # needs out, each with quoted evidence
+python3 agent.py action --need need_001            # partner action card + intro draft
+python3 agent.py confirm --need need_002           # draft to confirm a possible need
+python3 agent.py resolve --need need_001 --connected yes --useful yes
 python3 agent.py ingest data/contacts.sample.csv
 python3 agent.py match --need "VP Operations at a data center operator" --company Soventify --partner Giulio
 python3 agent.py draft --intro intro_001
@@ -59,6 +86,8 @@ third-party server.
 - `agent.py` — the whole agent: ingest, match, draft, follow-ups, learning, analytics
 - `SKILL.md` — instructions any AI agent (Muse etc.) follows to run this script
 - `data/contacts.sample.csv` — sample enriched contact list for the demo
+- `data/signals.sample.csv` — sample scattered portfolio updates: a founder
+  email, a launch announcement, a call note
 
 ## What is stubbed for the hackathon demo
 - Live Gmail / LinkedIn / Slack connectors: the ingest format and feed
