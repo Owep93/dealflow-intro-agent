@@ -1,7 +1,14 @@
 # Deal Flow Intro Agent — Bring Your Own Agent
 
 **Built for Deal Flow: NYC's First VC Hackathon @ Betaworks (Sat, Oct 24, 2026)**
-Team: Harvey Francois + Giulio Profumo
+Hosted by localhost:nyc and VCLab. Team: Harvey Francois + Giulio Profumo
+
+**Challenge theme: Portfolio ops** — helping funds support their companies at scale.
+The event's problem statement says venture capital runs on "spreadsheets, gut
+feel and endless inbox triage," and asks for software that helps VCs "support
+their founders after the check clears." That is exactly this agent's job: it
+lives in the inbox, watches the portfolio, and turns founder support from
+reactive triage into proactive, evidenced action, for any VC, in any sector.
 
 ## Portfolio intelligence that leads to action
 
