@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introloop: Scattered updates. One useful connection.</title>
+<style>
+  :root { --ink:#16202e; --muted:#5b6b7f; --line:#dde4ec; --bg:#f4f6f9; --card:#ffffff;
+          --accent:#2456d6; --muse:#7c5cd6; --instinct:#0e9f6e; --dots:#e8590c;
+          --wa:#e7f6df; --wahead:#075e54; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         background:var(--bg); color:var(--ink); }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px; }
+  header.hero { padding:44px 24px 6px; text-align:center; }
+  .brand { font-size:15px; font-weight:800; letter-spacing:.4px; }
+  .brand span { color:var(--accent); }
+  .brand small { display:block; font-weight:500; color:var(--muted); letter-spacing:0; margin-top:2px; }
+  .eyebrow { margin:26px 0 6px; font-size:12px; font-weight:700; letter-spacing:2px; color:var(--accent); }
+  header.hero h1 { margin:0 auto; font-size:36px; letter-spacing:-0.5px; max-width:720px; }
+  header.hero p.sub { color:var(--muted); max-width:620px; margin:12px auto 0; font-size:16px; line-height:1.55; }
+  .badge { display:inline-block; margin-top:14px; font-size:12.5px; font-weight:600; background:#e8eefc;
+           color:var(--accent); padding:5px 12px; border-radius:20px; }
+  /* stepper */
+  .steps { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:26px auto 18px; max-width:900px; }
+  .steps button { border:1px solid var(--line); background:#fff; border-radius:10px; padding:8px 12px;
+                  font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; text-align:left; }
+  .steps button small { display:block; font-weight:500; color:var(--muted); font-size:11.5px; }
+  .steps button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .steps button.on small { color:#cfe0ff; }
+  .panel { display:none; background:var(--card); border:1px solid var(--line); border-radius:16px;
+           box-shadow:0 2px 10px rgba(20,40,80,.05); padding:22px; max-width:900px; margin:0 auto; }
+  .panel.on { display:block; }
+  .panel h2 { margin:0 0 4px; font-size:21px; }
+  .panel .lede { color:var(--muted); margin:0 0 16px; font-size:14px; }
+  .srcgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+  .src { border:1px solid var(--line); border-radius:12px; padding:14px; background:#fbfcfe; font-size:13.5px; line-height:1.5; }
+  .src .k { font-size:11px; font-weight:700; letter-spacing:.6px; color:var(--muted); text-transform:uppercase; }
+  .src h4 { margin:6px 0 6px; font-size:14.5px; }
+  .src p { margin:5px 0; }
+  .src ul { margin:6px 0 6px 16px; padding:0; }
+  .src .foot { font-size:11.5px; color:var(--muted); border-top:1px dashed var(--line); padding-top:7px; margin-top:9px; }
+  .combine { text-align:center; margin:16px 0 2px; font-size:14px; }
+  .mail { border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .mail .mhead { background:#f1f4f8; padding:11px 14px; font-size:13px; border-bottom:1px solid var(--line); line-height:1.6; }
+  .mail .mbody { padding:14px; font-size:14px; line-height:1.6; }
+  .mail .mbody p { margin:7px 0; }
+  .wa { max-width:420px; margin:0 auto; border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .wa .whead { background:var(--wahead); color:#fff; padding:11px 14px; font-size:13.5px; font-weight:600; }
+  .wa .wbody { background:#ece5dd; padding:14px; display:flex; flex-direction:column; gap:8px; }
+  .wa .b { max-width:85%; padding:8px 11px; border-radius:10px; font-size:13.5px; line-height:1.45; background:#fff; }
+  .wa .b.me { align-self:flex-end; background:var(--wa); }
+  .wa .b small { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+  .kv { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  .kv .cell { border:1px solid var(--line); border-radius:12px; padding:12px 14px; background:#fbfcfe; font-size:13.5px; line-height:1.55; }
+  .kv .cell .k { font-size:11px; font-weight:700; letter-spacing:.6px; color:var(--muted); text-transform:uppercase; }
+  .btns { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .btn { font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+  .chip { font-size:11.5px; background:#eef3ee; border:1px solid #d6e4d6; color:#2c5d2c; padding:3px 8px; border-radius:20px; }
+  .chip.warn { background:#fdeeee; border-color:#f2caca; color:#8a2b2b; }
+  .chip.info { background:#e8eefc; border-color:#c9d7f8; color:var(--accent); }
+  .controls { display:flex; align-items:center; justify-content:space-between; max-width:900px; margin:16px auto 0; }
+  .controls .note { color:var(--muted); font-size:13px; text-align:center; flex:1; padding:0 12px; }
+  .controls button { border:1px solid var(--line); background:#fff; border-radius:9px; padding:8px 16px;
+                     font-size:13.5px; font-weight:600; cursor:pointer; }
+  .controls button:disabled { opacity:.4; cursor:default; }
+  .controls button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .fineprint { text-align:center; color:var(--muted); font-size:12px; margin:12px 0 0; }
+  /* mockups */
+  section.more { padding:38px 0 6px; }
+  section.more h2.title { text-align:center; font-size:26px; margin:0 0 4px; }
+  section.more p.sub { text-align:center; color:var(--muted); margin:0 auto 8px; max-width:640px; font-size:15px; line-height:1.5; }
+  .platform { display:flex; align-items:center; gap:12px; margin:26px 0 4px; }
+  .dot { width:14px; height:14px; border-radius:50%; }
+  .platform h3 { margin:0; font-size:22px; }
+  .platform p { margin:0; color:var(--muted); font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-top:16px; }
+  .mock { background:var(--card); border:1px solid var(--line); border-radius:16px;
+          box-shadow:0 2px 10px rgba(20,40,80,.05); overflow:hidden; display:flex; flex-direction:column; }
+  .mock .bar { padding:10px 14px; font-size:12px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; color:#fff; }
+  .mock .body { padding:14px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .mock h4 { margin:10px 14px 0; font-size:16px; }
+  .why { margin:0; padding:0 14px 14px; color:var(--muted); font-size:13px; line-height:1.45; }
+  .msg { max-width:92%; padding:9px 12px; border-radius:12px; font-size:13.5px; line-height:1.45; }
+  .user { align-self:flex-end; background:#e8eefc; border-bottom-right-radius:4px; }
+  .agent { align-self:flex-start; background:#f1f4f8; border-bottom-left-radius:4px; }
+  .sys { align-self:stretch; background:#fff8e6; border:1px solid #f0dfae; font-size:13px; }
+  .cardbox { align-self:stretch; border:1px solid var(--line); border-radius:12px; padding:11px 12px;
+             font-size:13.5px; line-height:1.5; background:#fbfcfe; }
+  .who { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.4px; margin-bottom:3px; }
+  footer { text-align:center; color:var(--muted); font-size:13px; padding:32px 16px 44px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="brand">INTRO<span>LOOP</span><small>Portfolio support, in your inbox.</small></div>
+  <p class="eyebrow">A QUIETER WAY TO HELP YOUR PORTFOLIO</p>
+  <h1>Scattered updates. One useful connection.</h1>
+  <p class="sub">See how Relay AI's progress becomes help from the fund's network.
+     Four agents do the work: Scout, Atlas, Bridge and Echo.</p>
+  <span class="badge">Insurance &middot; Northstar Ventures &middot; Interactive prototype</span>
+</header>
+
+<div class="wrap">
+  <nav class="steps" id="steps">
+    <button data-step="0" class="on">1 &middot; Scattered updates<small>LinkedIn &middot; email &middot; job post</small></button>
+    <button data-step="1">2 &middot; Instinct message<small>WhatsApp preview</small></button>
+    <button data-step="2">3 &middot; Company profile<small>Scout enriches</small></button>
+    <button data-step="3">4 &middot; Atlas in your inbox<small>Find the right route</small></button>
+    <button data-step="4">5 &middot; Bridge introduces<small>Email only</small></button>
+    <button data-step="5">6 &middot; Echo follows up<small>Email only</small></button>
+  </nav>
+
+  <div class="panel on" data-panel="0">
+    <h2>The startup shares progress in different places.</h2>
+    <p class="lede">Three scattered sources. None of them, alone, is a request for help.</p>
+    <div class="srcgrid">
+      <div class="src">
+        <div class="k">01 &middot; LinkedIn post &middot; Public update</div>
+        <h4>Relay AI</h4>
+        <p>Big milestone for Relay AI! We're launching a claims-workflow pilot with <b>Harbor Mutual</b>.</p>
+        <p>Excited to help insurance teams spend less time on repetitive work and more time supporting policyholders.</p>
+        <p>#Insurance #EnterpriseAI #Partnership</p>
+        <div class="foot">Sample announcement &middot; progress, not proof of a problem</div>
+      </div>
+      <div class="src">
+        <div class="k">02 &middot; Investor update &middot; Private email</div>
+        <h4>Relay AI — October investor update</h4>
+        <p>Emma Davis, to the fund &middot; 9:25 AM</p>
+        <ul>
+          <li>Our Harbor Mutual pilot is kicking off.</li>
+          <li>Three pilots are waiting on security and procurement reviews.</li>
+          <li>We're hiring our first Solutions Engineer.</li>
+        </ul>
+        <p><b>Where we could use help:</b> someone who has navigated insurer security reviews and enterprise deployment.</p>
+        <div class="foot">Sample founder email &middot; explicitly requests help</div>
+      </div>
+      <div class="src">
+        <div class="k">03 &middot; Job posting &middot; Hiring signal</div>
+        <h4>Founding Solutions Engineer</h4>
+        <p>Relay AI &middot; New York, NY &middot; Hybrid &middot; Full-time</p>
+        <ul>
+          <li>Lead deployments with insurance customers.</li>
+          <li>Work with enterprise security and IT teams.</li>
+          <li>Turn successful pilots into production workflows.</li>
+        </ul>
+        <div class="foot">Sample listing &middot; shows investment in deployment capacity</div>
+      </div>
+    </div>
+    <p class="combine"><b>Scout reads all three.</b> The company's next priority is clearer when the updates are combined.</p>
+  </div>
+
+  <div class="panel" data-panel="1">
+    <h2>The need surfaces where the founder already talks.</h2>
+    <p class="lede">On Instinct, over WhatsApp: the combined picture, in one message, no new app to open.</p>
+    <div class="wa">
+      <div class="whead">Instinct &middot; Northstar Ventures assistant</div>
+      <div class="wbody">
+        <div class="b">Relay AI, combined from this week's updates: pilot live with Harbor Mutual, three more customers waiting on security and procurement reviews, and a first Solutions Engineer role open.<small>Scout &middot; signals combined</small></div>
+        <div class="b">The pattern points to one need: help turning pilots into paying customers, from someone who has navigated insurer security reviews.<small>Scout &middot; explicit, founder's own words attached</small></div>
+        <div class="b me">Find who in our network can help.<small>Partner</small></div>
+        <div class="b">On it. Scout is enriching Relay's profile, and Atlas is searching every partner's network, not just yours.<small>Introloop</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" data-panel="2">
+    <h2>Scout enriches the company profile.</h2>
+    <p class="lede">Company and market context from Akta, sources attached. Another company's activity is context, never proof of Relay's need.</p>
+    <div class="kv">
+      <div class="cell"><div class="k">Company</div><b>Relay AI</b><br>AI claims automation for insurers<br>60 employees &middot; HQ New York<br>Series A, $18M raised</div>
+      <div class="cell"><div class="k">Signals (Akta)</div>Partnership: pilot live with Harbor Mutual<br>Hiring: deployment lead for insurer implementations<br>Headcount growth: +12% this quarter</div>
+      <div class="cell"><div class="k">Comparables (context only)</div>ClaimFast AI &middot; PolicyPilot &middot; Adjustr<br><span style="color:var(--muted)">Other companies deploying AI for insurers. Context for the market, not evidence about Relay.</span></div>
+      <div class="cell"><div class="k">Detected need &middot; Explicit</div><b>Help turning pilots into paying customers: navigate insurer security and procurement reviews.</b><br><span style="color:var(--muted)">Evidence: founder update, Oct 23, in her own words. Saved to Relay's profile.</span></div>
+    </div>
+  </div>
+
+  <div class="panel" data-panel="3">
+    <h2>Atlas finds the right route, in your inbox.</h2>
+    <p class="lede">The whole firm's network searched. The best route runs through a colleague, and the card says so.</p>
+    <div class="mail">
+      <div class="mhead"><b>From:</b> Atlas (Introloop)<br><b>Subject:</b> Relay AI: the right route is Maya Bennett, via Partner B</div>
+      <div class="mbody">
+        <p><b>Recommended:</b> Maya Bennett, VP Enterprise Sales, InsurTech Group. She has sold AI software to insurers and navigated their security reviews twice.</p>
+        <p><b>Evidence and uncertainty:</b> score 12.2, LinkedIn record, relationship strength 4/5, owned by Partner B. Uncertainty: medium. She has no past intro outcomes yet, so her track record here is unproven, and this card does not pretend otherwise.</p>
+        <p><b>Consent:</b> Maya is inside her standing consent envelope for insurer introductions (1 of 2 used this month), so there is no permission round trip on her side. Your approval of this card is the only gate, and the draft routes to Partner B first, because it is his relationship.</p>
+        <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See the evidence</span><span class="btn">Pass</span></div>
+        <div class="chips"><span class="chip">fit check passed</span><span class="chip">no duplicate on file</span><span class="chip info">Akta sourced</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" data-panel="4">
+    <h2>Bridge makes the introduction.</h2>
+    <p class="lede">Email only, sent after the partner approved the card. Nothing sends without that approval.</p>
+    <div class="mail">
+      <div class="mhead"><b>From:</b> Partner B, Northstar Ventures<br><b>To:</b> Emma Davis (Relay AI), Maya Bennett (InsurTech Group)<br><b>Subject:</b> Connecting you: Relay AI &times; Maya Bennett</div>
+      <div class="mbody">
+        <p>Emma, Maya: connecting you both.</p>
+        <p>Emma, Relay's pilots are waiting on insurer security and procurement reviews. Maya has sold AI software to insurers and navigated exactly those reviews at InsurTech Group, and she agreed to be introduced for precisely this.</p>
+        <p>Maya, Emma is Relay's founder. A short conversation on how you got enterprise deployments through security review would be directly useful this month.</p>
+        <p>I will let you two take it from here.</p>
+        <div class="chips"><span class="chip">partner approved</span><span class="chip">consent envelope: inside</span><span class="chip">prepared by Bridge</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" data-panel="5">
+    <h2>Echo follows up, and the loop closes.</h2>
+    <p class="lede">Both sides are asked, so the outcome is known even if the founder forgets to report back.</p>
+    <div class="mail">
+      <div class="mhead"><b>From:</b> Echo (Introloop)<br><b>Subject:</b> Relay AI &times; Maya Bennett: connected, and it helped</div>
+      <div class="mbody">
+        <p>Emma and Maya spoke on Tuesday. Emma marked the help <b>useful</b>: Maya walked her through the security review packet Harbor Mutual expects, and Relay is reusing it for the other two pilots.</p>
+        <p><b>Scorecards updated:</b> Scout +10 (a need that resolved as useful), Atlas +5 (its pick connected), Echo +3 (outcome captured). The pattern is reinforced: the next insurer security review need will be actioned faster.</p>
+        <div class="chips"><span class="chip">connected: yes</span><span class="chip">useful: yes</span><span class="chip">PRISM trace: complete</span></div>
+        <div class="btns"><span class="btn">View scorecards</span><span class="btn">Weekly rollup</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="back">Back</button>
+    <div class="note"><span id="pos">1 / 6</span><br><span id="note">Three sources. The founder's email makes the need explicit.</span></div>
+    <button id="next" class="primary">Next</button>
+  </div>
+  <p class="fineprint">Fictional companies and messages &middot; interface recreations &middot; no emails sent</p>
+</div>
+
+<section class="more wrap">
+  <h2 class="title">What else it does</h2>
+  <p class="sub">Introloop is bring-your-own-agent: the same team, running inside the assistant
+     each fund already uses. Nine investor use cases across the three hosts.</p>
+
+  <div class="platform"><div class="dot" style="background:var(--muse)"></div>
+    <div><h3>On Muse</h3><p>For the partner whose own assistant runs the fund's follow-through</p></div></div>
+  <div class="grid">
+    <div class="mock">
+      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 1</div>
+      <h4>The 7 AM briefing</h4>
+      <div class="body">
+        <div class="msg user">Morning. What needs me today?</div>
+        <div class="cardbox">
+          <div class="who">INTROLOOP BRIEFING &middot; OVERNIGHT</div>
+          <b>Relay</b> needs help turning pilots into paying customers. Scout: explicit need,
+          founder's own words attached. Atlas: best match is <b>Maya Bennett</b> (Partner B's contact,
+          sold AI to insurers, score 12.2, uncertainty medium). Bridge: card ready.
+          Maya is inside her consent envelope, so your approval is the only gate.
+          <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See evidence</span><span class="btn">Pass</span></div>
+        </div>
+      </div>
+      <p class="why">Why it matters: the partner starts the day with one decision, not forty unread founder updates.</p>
+    </div>
+    <div class="mock">
+      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 2</div>
+      <h4>Proof on demand</h4>
+      <div class="body">
+        <div class="msg user">Why Maya? Show me the evidence before I approve anything.</div>
+        <div class="cardbox">
+          <div class="who">PRISM EVALUATION &middot; 6/6 CHECKS PASSED</div>
+          Evidence: "Three potential customers are stuck in security and procurement reviews"
+          (founder update, Oct 23). Relationship claim supported: LinkedIn record, strength 4/5,
+          owned by Partner B. Akta context: Relay, AI claims automation, 60 employees,
+          partnership live with Harbor Mutual.
+          <div class="chips"><span class="chip">evidence verbatim</span><span class="chip">no unsupported claims</span><span class="chip">akta sourced</span></div>
+        </div>
+      </div>
+      <p class="why">Why it matters: every recommendation an investor sees can be audited back to the data that produced it.</p>
+    </div>
+    <div class="mock">
+      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 3</div>
+      <h4>The loop closes itself</h4>
+      <div class="body">
+        <div class="msg agent"><div class="who">ECHO &middot; FOLLOW-THROUGH</div>
+          Relay and Maya connected on Tuesday. The founder marked the help useful, so the pattern
+          is reinforced for the next insurance need. Scorecards: Scout +10, Atlas +5.
+          Atlas also took a strike: its Northwind pick passed. Nothing was hidden.</div>
+        <div class="btns"><span class="btn">View scorecards</span><span class="btn">Weekly rollup</span></div>
+      </div>
+      <p class="why">Why it matters: outcomes are captured even when the founder forgets to report back, and the agents' track record is visible.</p>
+    </div>
+  </div>
+
+  <div class="platform"><div class="dot" style="background:var(--instinct)"></div>
+    <div><h3>On Instinct</h3><p>For the fund that wants the work done before anyone asks</p></div></div>
+  <div class="grid">
+    <div class="mock">
+      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 1</div>
+      <h4>It worked overnight</h4>
+      <div class="body">
+        <div class="msg sys"><div class="who">PROACTIVE CYCLE &middot; 6:12 AM &middot; NOBODY ASKED</div>
+          Watch cycle complete. New Akta signal: VoltPack posted 6 new roles.
+          Scout prepared a bridge-raise action card. Echo sent 2 follow-up nudges
+          (earned autonomy, L2). One card is waiting for a partner.</div>
+        <div class="btns"><span class="btn primary">Review the card</span><span class="btn">Read the briefing</span></div>
+      </div>
+      <p class="why">Why it matters: portfolio support stops being reactive inbox triage and starts being a system that runs itself.</p>
+    </div>
+    <div class="mock">
+      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 2</div>
+      <h4>Inbox, annotated</h4>
+      <div class="body">
+        <div class="cardbox">
+          <div class="who">FOUNDER UPDATE &middot; RELAY &middot; INBOX</div>
+          "Investor update: three potential customers are stuck in security and procurement
+          reviews. Turning pilots into paying customers is our number one bottleneck."
+          <div class="chips"><span class="chip">Scout: need spotted</span><span class="chip">explicit, founder's words</span></div>
+          <div class="btns"><span class="btn primary">Confirm with founder</span><span class="btn">Find who can help</span></div>
+        </div>
+      </div>
+      <p class="why">Why it matters: the signal is caught where it lands, inside the inbox, not in a spreadsheet someone updates monthly.</p>
+    </div>
+    <div class="mock">
+      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 3</div>
+      <h4>Autonomy, earned in public</h4>
+      <div class="body">
+        <div class="msg sys"><div class="who">TRUST LADDER &middot; LEVEL UP</div>
+          Introloop reached <b>L3 Connector</b> (60 XP, 3 verified wins). Unlocked: sending
+          double-opt-in first asks on approved needs. Current strikes: 1 (Atlas, dead pick).
+          Three strikes demote. Every action it took unsupervised is in the trace.</div>
+        <div class="btns"><span class="btn">View the trace</span><span class="btn">Set the envelope</span></div>
+      </div>
+      <p class="why">Why it matters: investors can grant an agent more access safely, because the access is earned by verified outcomes and lost by mistakes.</p>
+    </div>
+  </div>
+
+  <div class="platform"><div class="dot" style="background:var(--dots)"></div>
+    <div><h3>On Dots</h3><p>For the whole firm: one shared workspace, one collective network</p></div></div>
+  <div class="grid">
+    <div class="mock">
+      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 1</div>
+      <h4>The firm feed</h4>
+      <div class="body">
+        <div class="msg agent"><div class="who">#PORTFOLIO-OPS &middot; INTROLOOP FEED</div>
+          Giulio's intro worked: Sarah Kim (Northgate Retail) took the meeting with RouteWise.
+          This week's rollup is pinned: 11 intros proposed, 4 meetings, 1 need resolved as useful.</div>
+        <div class="chips"><span class="chip">reply rate up</span><span class="chip">top connector: Partner B</span></div>
+      </div>
+      <p class="why">Why it matters: every partner sees the network working, so the whole firm's relationships compound instead of sitting in private inboxes.</p>
+    </div>
+    <div class="mock">
+      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 2</div>
+      <h4>The colleague ask</h4>
+      <div class="body">
+        <div class="msg agent"><div class="who">ATLAS &middot; TO ALL PARTNERS</div>
+          Who knows someone who has sold AI software to insurers and navigated their security reviews?
+          Relay needs exactly that.</div>
+        <div class="msg user"><div class="who">PARTNER B</div>
+          Maya Bennett, my contact at InsurTech Group. She has done this twice.</div>
+        <div class="msg agent"><div class="who">ATLAS</div>
+          Candidate saved with evidence and uncertainty noted. Bridge is preparing the card,
+          and the draft routes to Partner B for approval, since it is his relationship.</div>
+      </div>
+      <p class="why">Why it matters: when the answer lives in a colleague's relationships, the agent asks the room instead of guessing.</p>
+    </div>
+    <div class="mock">
+      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 3</div>
+      <h4>Agent to agent</h4>
+      <div class="body">
+        <div class="msg sys"><div class="who">ROUNDTABLE &middot; INCOMING FROM RELAY'S FOUNDER AGENT</div>
+          Need shared with its case file: company profile, the founder's evidence, and the
+          full trace of how the need was detected.</div>
+        <div class="msg agent"><div class="who">INTROLOOP VIA DOTS</div>
+          Received. Atlas found 3 possible connections in the fund's network.
+          The top match is ready for partner review; the other two carry higher uncertainty and say so.</div>
+        <div class="btns"><span class="btn primary">Review top match</span><span class="btn">See all three</span></div>
+      </div>
+      <p class="why">Why it matters: founders' agents and funds' agents can cooperate directly, with the fund's approval rules still in charge.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Introloop is bring-your-own-agent: one skill any host agent can run, state on the fund's own machine.<br>
+  Data and signals by Akta.pro &middot; Model calls by Nicrron &middot; Traced and evaluated by PRISM (Block Convey) &middot; Agent-to-agent via Roundtable
+</footer>
+
+<script>
+  var notes = [
+    "Three sources. The founder's email makes the need explicit.",
+    "One message on the channel the founder already uses.",
+    "Scout's profile: context attached, need evidenced.",
+    "Atlas searched the whole firm. The route runs through a colleague.",
+    "Bridge sends only after the partner approves.",
+    "Echo asked both sides. The outcome is recorded, not assumed."
+  ];
+  var cur = 0;
+  var panels = document.querySelectorAll("[data-panel]");
+  var tabs = document.querySelectorAll("#steps button");
+  var back = document.getElementById("back"), next = document.getElementById("next");
+  var pos = document.getElementById("pos"), note = document.getElementById("note");
+  function show(i) {
+    cur = Math.max(0, Math.min(5, i));
+    panels.forEach(function(p){ p.classList.toggle("on", +p.dataset.panel === cur); });
+    tabs.forEach(function(t){ t.classList.toggle("on", +t.dataset.step === cur); });
+    back.disabled = cur === 0;
+    next.textContent = cur === 5 ? "Restart" : "Next";
+    pos.textContent = (cur + 1) + " / 6";
+    note.textContent = notes[cur];
+  }
+  tabs.forEach(function(t){ t.addEventListener("click", function(){ show(+t.dataset.step); }); });
+  back.addEventListener("click", function(){ show(cur - 1); });
+  next.addEventListener("click", function(){ show(cur === 5 ? 0 : cur + 1); });
+  show(0);
+</script>
+
+</body>
+</html>

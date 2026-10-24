@@ -252,6 +252,7 @@ No dependencies. Python 3 standard library only. State is one local
 third-party server.
 
 ## Files
+- `index.html` — the merged demo page: the six-step insurance flow plus the investor use-case mockups
 - `agent.py` — the whole agent: ingest, match, draft, follow-ups, learning, analytics
 - `SKILL.md` — instructions any AI agent (Muse etc.) follows to run this script
 - `data/contacts.sample.csv` — sample enriched contact list for the demo
