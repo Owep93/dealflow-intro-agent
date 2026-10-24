@@ -138,10 +138,13 @@ notes cannot do:
    intro target's company, so "why this person, why now" is evidenced
    with live market data, not gut feel.
 
-Set `AKTA_API_KEY` and the agent calls the live Akta API (the Akta MCP
-works too, through the host agent). Without a key it reads
-`data/akta.sample.json`, a cache in the Akta response shape. Enrichment is
-never invented: no Akta record, no enrichment block.
+Two live routes, MCP first: set `AKTA_MCP_URL` to Akta's MCP server and
+the agent speaks MCP to it directly (it discovers the company tool from
+`tools/list`, nothing is hardcoded), with `AKTA_API_KEY` as the bearer
+when the server asks for one. Or set only `AKTA_API_KEY` and it calls the
+live REST API. With neither, it reads `data/akta.sample.json`, a cache in
+the Akta response shape. Enrichment is never invented: no Akta record,
+no enrichment block.
 Run `python3 agent.py akta` for status, `python3 agent.py enrich --company "Northwind Robotics"` to test it.
 
 ## Run it

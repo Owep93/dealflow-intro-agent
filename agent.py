@@ -721,7 +721,54 @@ def akta_cache() -> dict:
         return json.loads(AKTA_CACHE.read_text())
     return {"companies": {}, "watchlist_signals": []}
 
+def _mcp_call(url: str, method: str, params: dict, rid: int = 1) -> dict:
+    headers = {"Content-Type": "application/json", "Accept": "application/json, text/event-stream"}
+    if os.environ.get("AKTA_API_KEY"):
+        headers["Authorization"] = f"Bearer {os.environ['AKTA_API_KEY']}"
+    req = urllib.request.Request(url, method="POST", headers=headers,
+        data=json.dumps({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}).encode())
+    with urllib.request.urlopen(req, timeout=10) as r:
+        raw = r.read().decode()
+    for line in raw.splitlines():            # streamable HTTP may answer as SSE
+        if line.startswith("data:"):
+            return json.loads(line[5:])
+    return json.loads(raw)
+
+def akta_enrich_mcp(name: str) -> dict | None:
+    """Enrich via the Akta MCP server (AKTA_MCP_URL). Discovers the company
+    tool from tools/list instead of hardcoding a tool name."""
+    url = os.environ.get("AKTA_MCP_URL")
+    if not url:
+        return None
+    try:
+        _mcp_call(url, "initialize", {"protocolVersion": "2025-03-26",
+                                      "capabilities": {}, "clientInfo": {"name": "dealflow-intro-agent", "version": "1.0"}})
+        tools = _mcp_call(url, "tools/list", {}, rid=2).get("result", {}).get("tools", [])
+        tool = next((t["name"] for t in tools
+                     if "compan" in t["name"] and any(k in t["name"] for k in ("search", "enrich", "profile", "lookup"))), None)
+        if not tool:
+            print(f"  [akta-mcp] no company tool found among {[t['name'] for t in tools]}")
+            return None
+        res = _mcp_call(url, "tools/call", {"name": tool, "arguments": {"name": name, "query": name}}, rid=3)
+        content = res.get("result", {}).get("content", [])
+        text = next((c.get("text", "") for c in content if c.get("type") == "text"), "")
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, list) and parsed:
+                parsed = parsed[0]
+            if isinstance(parsed, dict) and parsed:
+                return parsed
+        except Exception:
+            pass
+        return {"raw": text} if text else None
+    except Exception as e:
+        print(f"  [akta-mcp] lookup failed ({e}); falling back")
+        return None
+
 def akta_enrich(name: str) -> dict | None:
+    via_mcp = akta_enrich_mcp(name)
+    if via_mcp:
+        return via_mcp
     key = os.environ.get("AKTA_API_KEY")
     if key:
         base = os.environ.get("AKTA_API_BASE", "https://api.akta.pro/v1")
@@ -748,10 +795,16 @@ def print_enrichment(name: str, label: str) -> None:
     e = akta_enrich(name)
     if not e:
         return
+    if e.get("raw"):
+        print(f"Akta enrichment ({label}: {name}): {e['raw'][:300]}")
+        return
     print(f"Akta enrichment ({label}: {name}): {e.get('sector', '')}, "
           f"{e.get('employees', '?')} employees, HQ {e.get('hq', '?')}, {e.get('funding', '')}")
     for s in e.get("signals", [])[:2]:
-        print(f"   akta signal [{s.get('type', '')}]: {s.get('text', '')}")
+        if isinstance(s, dict):
+            print(f"   akta signal [{s.get('type', '')}]: {s.get('text', '')}")
+        else:
+            print(f"   akta signal: {s}")
 
 def akta_import_signals() -> int:
     state = load()
@@ -769,7 +822,12 @@ def akta_import_signals() -> int:
     return added
 
 def akta_status() -> None:
-    key = "set (live API)" if os.environ.get("AKTA_API_KEY") else "not set (using sample cache)"
+    if os.environ.get("AKTA_MCP_URL"):
+        key = f"set (MCP at {os.environ['AKTA_MCP_URL']})"
+    elif os.environ.get("AKTA_API_KEY"):
+        key = "set (live API)"
+    else:
+        key = "not set (using sample cache)"
     cache = akta_cache()
     print(f"Akta.pro: API key {key}; cached companies: {len(cache.get('companies', {}))}; "
           f"watchlist signals: {len(cache.get('watchlist_signals', []))}")
