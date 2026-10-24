@@ -1,4 +1,4 @@
-# Deal Flow Intro Agent — Bring Your Own Agent
+# Introdesk — the Deal Flow Intro Agent (Bring Your Own Agent)
 
 **Built for Deal Flow: NYC's First VC Hackathon @ Betaworks (Sat, Oct 24, 2026)**
 Hosted by localhost:nyc and VCLab. Team: Harvey Francois + Giulio Profumo
@@ -38,35 +38,33 @@ Four agents run the workflow, so the founder gets relevant help without
 having to know whom to ask, and the fund puts its collective network to
 work:
 
-- **Scout** spots the need. It reads the scattered updates and Akta
-  signals and detects what is emerging, each need backed by evidence.
-- **Atlas** finds who can help. It searches the whole firm's network,
-  across every partner, and asks the colleagues when the answer sits in
-  someone else's relationships.
-- **Bridge** prepares the introduction: the partner action card (reason,
-  evidence, evidenced relationship, draft), the consent flow, and the
-  intro itself on approval.
-- **Echo** checks the result: follows up both sides, records whether the
-  founder connected and whether the help was useful, and feeds it back
-  as trust and learning.
+| Agent | Work performed | Tools used |
+|---|---|---|
+| **Scout** — understand the startup | Reads the founder update, retrieves company and market context, distinguishes explicit needs from inferred opportunities, and saves the updated profile. | akta + Nicrron → Roundtable |
+| **Atlas** — understand the network | Reads that need, searches authorized contact/email/calendar records, and incorporates colleague confirmations. Saves candidate contacts with evidence and uncertainty. | Nicrron + relationship data → Roundtable |
+| **Bridge** — coordinate the introduction | Reads the need and candidates, checks fit and duplicates, prepares the recommendation, and manages approval and recipient interest. | Nicrron + Roundtable |
+| **Echo** — follow through | Tracks introduction activity, requests feedback through the approved communication workflow, and saves confirmed outcomes. | Nicrron + Roundtable + email/calendar |
 
-The demo story is Giulio's: an AI startup selling to insurance companies
-posts that it launched a pilot with an insurer; its investor update says
-three potential customers are stuck in security and procurement reviews.
-Scout names the need ("help turning insurance pilots into paying
-customers"), Atlas finds a colleague's contact who has sold AI software
-to insurers and navigated these reviews, Bridge prepares the intro,
-Echo confirms it landed and helped.
+The demo story is Giulio's: **Relay**, an AI startup selling to insurance
+companies, posts that it launched a pilot with an insurer; its investor
+update says three potential customers are stuck in security and
+procurement reviews. Scout names the need ("help turning insurance
+pilots into paying customers"), Atlas finds **Maya**, a colleague's
+contact who has sold AI software to insurers and navigated these
+reviews, Bridge checks fit and duplicates and prepares the intro, and
+Echo confirms it landed and helped. PRISM then inspects the whole run:
+why Maya was recommended, and whether any claim (like "the investor
+knows her well") is actually supported by the records.
 
 ## Sponsors, and how each one is used
 
-| Sponsor | How we use it | Priority |
+| Tool | Role in Introdesk | Insurance example |
 |---|---|---|
-| akta.pro | Company news and enriched portfolio profiles via API/MCP. Expansion, launches, partnerships and hiring become triggers for potential introductions. | Core integration |
-| Nicrron × Ninoo | Nicrron for the model calls that extract needs, assess candidate relevance and draft recommendations. Ninoo helps build the application. | Core infrastructure |
-| Block Convey / PRISM | Traces the workflow and evaluates whether recommendations are supported by the retrieved evidence (`trace`, `evaluate`). | Quality and demo proof |
-| Roundtable | A founder's agent shares a current need with the fund's agent, which returns possible connections (`share`, `receive`). | Optional extension |
-| BotMRR | "Bots that do the work": the whole team runs unattended in proactive `watch` mode. | Always on |
+| akta.pro | Supplies company enrichment, news and signals. Scout uses it to understand the startup, its market and comparable companies. | Finds Relay's insurance partnership and researches other companies deploying AI for insurers. Sources stay attached; another company's activity is context, not proof of Relay's needs. |
+| Nicrron × Ninoo | Nicrron powers model calls for understanding updates, assessing matches and drafting messages. Ninoo helps build the application. | Turns Relay's investor email into a structured need: "Help navigating insurer security reviews." |
+| Roundtable | Gives connected agents shared files, notes and communication, used to pass work and maintain shared context. Our application still defines the workflow and approval rules. | Scout saves Relay's need; Atlas adds a contact and evidence; Bridge prepares the introduction; Echo records feedback. |
+| PRISM by Block Convey | Traces what happened and evaluates the quality of the agent's output against supplied evidence. | Inspects why Maya was recommended, and flags an unsupported claim that the investor "knows her well." |
+| BotMRR | "Bots that do the work": the whole team runs unattended in proactive `watch` mode. | The Relay story runs end to end without anyone asking. |
 
 Run `python3 agent.py sponsors` for the live status of each integration.
 

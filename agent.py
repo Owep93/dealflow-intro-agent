@@ -260,17 +260,23 @@ def connectors() -> None:
 # --------------------------------------------------------------------------
 
 AGENTS = {
-    "Scout":  "Spots the need. Reads scattered portfolio updates and Akta "
-              "signals, detects emerging needs, each backed by evidence.",
-    "Atlas":  "Finds who can help. Searches the whole firm's network, "
-              "across every partner, and asks colleagues when the answer "
-              "sits in someone else's relationships.",
-    "Bridge": "Prepares the introduction. Builds the partner action card "
-              "(reason, evidence, evidenced relationship, draft), runs the "
-              "consent flow, and makes the intro happen on approval.",
-    "Echo":   "Checks the result. Follows up both sides, records whether "
-              "the founder connected and whether the help was useful, and "
-              "feeds the outcome back as trust and learning.",
+    "Scout":  "Understand the startup. Reads the founder update, retrieves "
+              "company and market context (Akta), distinguishes explicit "
+              "needs from inferred opportunities, and saves the updated "
+              "profile. Tools: akta + Nicrron -> Roundtable.",
+    "Atlas":  "Understand the network. Reads the need, searches authorized "
+              "contact, email and calendar records, and incorporates "
+              "colleague confirmations. Saves candidate contacts with "
+              "evidence and uncertainty. Tools: Nicrron + relationship "
+              "data -> Roundtable.",
+    "Bridge": "Coordinate the introduction. Reads the need and candidates, "
+              "checks fit and duplicates, prepares the recommendation, and "
+              "manages approval and recipient interest. Tools: Nicrron + "
+              "Roundtable.",
+    "Echo":   "Follow through. Tracks introduction activity, requests "
+              "feedback through the approved communication workflow, and "
+              "saves confirmed outcomes. Tools: Nicrron + Roundtable + "
+              "email/calendar.",
 }
 
 def show_agents() -> None:
@@ -314,6 +320,12 @@ def evaluate() -> None:
         contact = next((c for c in state["contacts"] if intro and c["id"] == intro["contact_id"]), None)
         checks.append(("matched contact scores for the need",
                        bool(contact) and score(contact, words) > 0))
+        checks.append(("relationship claim supported by records (source, owner, strength on file)",
+                       bool(contact) and bool(contact.get("source")) and bool(contact.get("owner_partner"))
+                       and bool(contact.get("strength"))))
+        checks.append(("need backed by founder-originated evidence, not third-party activity alone",
+                       any(e["source"] in ("founder_email", "call_note", "founder_update")
+                           for e in need["evidence"])))
         checks.append(("workflow traced Scout -> Atlas -> Bridge",
                        ("Scout", "detect") in traced and ("Bridge", "action") in traced))
         if need["status"] == "resolved":
@@ -385,6 +397,7 @@ def load() -> dict:
         state = json.loads(STORE.read_text())
         for key in ("contacts", "intros", "feed", "signals", "needs", "outbox", "trace"):
             state.setdefault(key, [])
+        state.setdefault("profiles", {})
         agent_profile(state)
         return state
     return {"contacts": [], "intros": [], "feed": [], "signals": [], "needs": [],
@@ -526,6 +539,26 @@ def action(need_id: str) -> None:
     trace(state, "Atlas", "match",
           f"{need['company']} -> {best['name']} ({best['company']}), "
           f"known by {best['owner_partner'] or 'the fund'}, strength {best['strength']}/5")
+    fit = score(best, words)
+    unc = ("low" if best["wins"] >= 1 and best["strength"] >= 4
+           else "medium" if best["strength"] >= 3 else "high")
+    unc_why = (f"{best['wins']} verified past intro win(s)" if best["wins"]
+               else "no past intro outcomes yet, so track record is unproven")
+    print(f"Atlas candidate: score {fit:.1f}, evidence: {best['source']} record, "
+          f"strength {best['strength']}/5. Uncertainty: {unc} ({unc_why}).")
+    if best["owner_partner"]:
+        print(f"Colleague confirmation: this relationship belongs to {best['owner_partner']}. "
+              f"The draft goes to them for approval before any outreach.")
+    dup = next((i for i in state["intros"]
+                if i["portfolio_company"] == need["company"]
+                and i["contact_id"] == best["id"] and i["need"] == need["need"]), None)
+    if dup:
+        print(f"Bridge check: DUPLICATE. {best['name']} was already proposed for this "
+              f"need on {dup['created']} ({dup['id']}, status {dup['status']}). Not proposing again.")
+        trace(state, "Bridge", "duplicate_blocked", f"{need['company']} -> {best['name']} ({dup['id']})")
+        save(state)
+        return
+    print(f"Bridge check: fit confirmed (score {fit:.1f}), no duplicate intro on file.")
     print(f"\nRecommended action: introduction to {best['name']}, {best['role']}, {best['company']}")
     print(f"Evidenced relationship: strength {best['strength']}/5, source {best['source']}, "
           f"known by {best['owner_partner'] or 'the fund'}, past intro wins {best['wins']}")
@@ -541,6 +574,12 @@ def action(need_id: str) -> None:
     need["status"] = "actioned"
     trace(state, "Bridge", "action",
           f"Action card prepared: intro {need['company']} -> {best['name']} (draft {iid})")
+    enr = akta_enrich(need["company"]) or {}
+    state.setdefault("profiles", {})[need["company"]] = {
+        "company": need["company"], "current_need": need["need"],
+        "certainty": need["certainty"], "sector": enr.get("sector", ""),
+        "employees": enr.get("employees"), "updated": date.today().isoformat()}
+    print(f"Scout saved the updated profile for {need['company']} (need + Akta context).")
     save(state)
     print("\nIntroduction draft:")
     draft(iid)
@@ -577,7 +616,8 @@ def resolve(need_id: str, connected: str, useful: str) -> None:
     post_feed(state, f"{need['company']}: need '{need['need']}' resolved. "
                      f"Founder connected: {connected}. Help useful: {useful}.")
     save(state)
-    print(f"Resolved {need_id}: connected={connected}, useful={useful}")
+    print(f"Resolved {need_id}: connected={connected}, useful={useful}. "
+          f"Echo requested this feedback through the approved channel and saved the confirmed outcome.")
 
 # --------------------------------------------------------------------------
 # 1. Ingest — email / LinkedIn / CSV
@@ -895,6 +935,9 @@ def print_enrichment(name: str, label: str) -> None:
         return
     print(f"Akta enrichment ({label}: {name}): {e.get('sector', '')}, "
           f"{e.get('employees', '?')} employees, HQ {e.get('hq', '?')}, {e.get('funding', '')}")
+    if e.get("comparables"):
+        print(f"   akta comparables (context only, not proof of need): "
+              f"{', '.join(e['comparables'])}")
     for s in e.get("signals", [])[:2]:
         if isinstance(s, dict):
             print(f"   akta signal [{s.get('type', '')}]: {s.get('text', '')}")
@@ -989,11 +1032,20 @@ def roundtable_share(need_id: str, path: str = "roundtable_need.json") -> None:
         sys.exit(f"No need {need_id}")
     msg = {"protocol": "roundtable", "type": "need_share",
            "from_agent": f"founder-agent:{need['company']}",
-           "to_agent": "fund-agent", "need": need}
+           "to_agent": "fund-agent", "need": need,
+           "case_file": {
+               "profile": state.get("profiles", {}).get(need["company"], {}),
+               "candidate_intros": [i for i in state["intros"]
+                                    if i["portfolio_company"] == need["company"]],
+               "trace": [t for t in state.get("trace", [])
+                         if need["company"] in t["detail"]],
+               "note": "Shared context only. The receiving application still "
+                       "defines the workflow and approval rules."}}
     Path(path).write_text(json.dumps(msg, indent=2))
     trace(state, "Bridge", "roundtable_share", f"{need['company']}: need shared agent-to-agent")
     save(state)
-    print(f"Shared {need_id} via Roundtable -> {path}. The receiving agent answers with connections.")
+    print(f"Shared {need_id} via Roundtable -> {path} (need + case file: profile, "
+          f"candidates, trace). The receiving agent answers with connections.")
 
 def roundtable_receive(path: str) -> None:
     msg = json.loads(Path(path).read_text())
@@ -1012,6 +1064,12 @@ def roundtable_receive(path: str) -> None:
           f"{need['company']}: need received from {msg.get('from_agent', 'another agent')}")
     save(state)
     print(f"Received need via Roundtable: {need['company']}: {need['need']} [{need['certainty']}]")
+    case = msg.get("case_file") or {}
+    if case:
+        print(f"Shared context arrived with it: profile "
+              f"({case.get('profile', {}).get('sector', 'no profile')}), "
+              f"{len(case.get('candidate_intros', []))} candidate intro(s), "
+              f"{len(case.get('trace', []))} trace event(s).")
     print("Run `action " + need["id"] + "` and Atlas answers with possible connections.")
 
 # --------------------------------------------------------------------------
@@ -1150,7 +1208,7 @@ def demo() -> None:
 # --------------------------------------------------------------------------
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Deal Flow Intro Agent (BYOA)")
+    p = argparse.ArgumentParser(description="Introdesk — the Deal Flow Intro Agent (BYOA)")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("demo")
     sg = sub.add_parser("signals"); sg.add_argument("csv")

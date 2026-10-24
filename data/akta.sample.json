@@ -77,13 +77,17 @@
         }
       ]
     },
-    "ClaimBridge AI": {
+    "Relay": {
       "sector": "AI claims automation for insurers",
       "employees": 60,
       "hq": "Chicago, IL",
       "funding": "Series A, $18M raised",
       "headcount_growth_qoq": "+12%",
       "signals": [
+        {
+          "type": "partnership",
+          "text": "Insurance partnership: pilot live with Meridian Mutual"
+        },
         {
           "type": "job_posts",
           "text": "Hiring a deployment lead for insurer implementations"
@@ -92,6 +96,11 @@
           "type": "news",
           "text": "Pilot announced with a large Midwest mutual insurer"
         }
+      ],
+      "comparables": [
+        "ClaimFast AI",
+        "PolicyPilot",
+        "Adjustr"
       ]
     }
   },

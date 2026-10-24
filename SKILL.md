@@ -45,6 +45,17 @@ Four named agents, one workflow. Speak of them by name when you report:
    the introduction as the recommended action (`action` command).
 4. **Close the loop.** After an intro, `resolve` the need: record whether
    the founder connected and whether the help was useful.
+5. **Context is not proof.** Akta data about comparable companies is
+   market context. A need must rest on the company's own evidence,
+   ideally founder-originated (their email, a call note). Third-party
+   activity alone never creates a need.
+6. **No unsupported claims.** Never say an investor "knows someone well"
+   unless the contact record carries the evidence (source, owner,
+   strength). `evaluate` (PRISM) flags exactly this; run it before
+   presenting and report failures instead of smoothing them over.
+7. **Candidates carry uncertainty.** Atlas saves every candidate with
+   its evidence and an uncertainty level; a contact with no past intro
+   outcomes is unproven, and the card must say so.
 
 ## Rules
 1. **Never send an intro without the partner's explicit approval.**
