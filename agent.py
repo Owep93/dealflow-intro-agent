@@ -1395,7 +1395,7 @@ def demo() -> None:
 # --------------------------------------------------------------------------
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Introdesk — the Deal Flow Intro Agent (BYOA)")
+    p = argparse.ArgumentParser(description="Introloop — the Deal Flow Intro Agent (BYOA)")
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("demo")
     sg = sub.add_parser("signals"); sg.add_argument("csv")

@@ -1,4 +1,4 @@
-# Introdesk — the Deal Flow Intro Agent (Bring Your Own Agent)
+# Introloop — the Deal Flow Intro Agent (Bring Your Own Agent)
 
 **Built for Deal Flow: NYC's First VC Hackathon @ Betaworks (Sat, Oct 24, 2026)**
 Hosted by localhost:nyc and VCLab. Team: Harvey Francois + Giulio Profumo
@@ -58,7 +58,7 @@ knows her well") is actually supported by the records.
 
 ## Sponsors, and how each one is used
 
-| Tool | Role in Introdesk | Insurance example |
+| Tool | Role in Introloop | Insurance example |
 |---|---|---|
 | akta.pro | Supplies company enrichment, news and signals. Scout uses it to understand the startup, its market and comparable companies. | Finds Relay's insurance partnership and researches other companies deploying AI for insurers. Sources stay attached; another company's activity is context, not proof of Relay's needs. |
 | Nicrron × Ninoo | Nicrron powers model calls for understanding updates, assessing matches and drafting messages. Ninoo helps build the application. | Turns Relay's investor email into a structured need: "Help navigating insurer security reviews." |
