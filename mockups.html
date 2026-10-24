@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introloop — investor use cases on Muse, Instinct and Dots</title>
+<style>
+  :root { --ink:#16202e; --muted:#5b6b7f; --line:#dde4ec; --bg:#f4f6f9; --card:#ffffff;
+          --muse:#7c5cd6; --instinct:#0e9f6e; --dots:#e8590c; --accent:#2456d6; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+         background:var(--bg); color:var(--ink); }
+  header { padding:40px 24px 8px; text-align:center; }
+  header h1 { margin:0; font-size:34px; letter-spacing:-0.5px; }
+  header h1 span { color:var(--accent); }
+  header p { color:var(--muted); max-width:640px; margin:10px auto 0; font-size:16px; line-height:1.5; }
+  section { max-width:1120px; margin:0 auto; padding:28px 20px 8px; }
+  .platform { display:flex; align-items:center; gap:12px; margin:18px 0 4px; }
+  .dot { width:14px; height:14px; border-radius:50%; }
+  .platform h2 { margin:0; font-size:24px; }
+  .platform p { margin:0; color:var(--muted); font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; margin-top:16px; }
+  .mock { background:var(--card); border:1px solid var(--line); border-radius:16px;
+          box-shadow:0 2px 10px rgba(20,40,80,.05); overflow:hidden; display:flex; flex-direction:column; }
+  .mock .bar { padding:10px 14px; font-size:12px; font-weight:700; letter-spacing:.6px;
+               text-transform:uppercase; color:#fff; }
+  .mock .body { padding:14px; display:flex; flex-direction:column; gap:10px; flex:1; }
+  .mock h3 { margin:2px 14px 0; font-size:16px; }
+  .why { margin:0; padding:0 14px 14px; color:var(--muted); font-size:13px; line-height:1.45; }
+  .msg { max-width:92%; padding:9px 12px; border-radius:12px; font-size:13.5px; line-height:1.45; }
+  .user { align-self:flex-end; background:#e8eefc; border-bottom-right-radius:4px; }
+  .agent { align-self:flex-start; background:#f1f4f8; border-bottom-left-radius:4px; }
+  .sys { align-self:stretch; background:#fff8e6; border:1px solid #f0dfae; font-size:13px; }
+  .cardbox { align-self:stretch; border:1px solid var(--line); border-radius:12px; padding:11px 12px;
+             font-size:13.5px; line-height:1.5; background:#fbfcfe; }
+  .cardbox b.tag { font-size:11px; letter-spacing:.5px; padding:2px 7px; border-radius:20px;
+                   background:#e8eefc; color:var(--accent); margin-right:6px; }
+  .btns { display:flex; gap:8px; margin-top:9px; flex-wrap:wrap; }
+  .btn { font-size:12.5px; font-weight:600; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:#fff; }
+  .btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .chip { font-size:11.5px; background:#eef3ee; border:1px solid #d6e4d6; color:#2c5d2c;
+          padding:3px 8px; border-radius:20px; }
+  .chip.warn { background:#fdeeee; border-color:#f2caca; color:#8a2b2b; }
+  .who { font-size:11px; font-weight:700; color:var(--muted); letter-spacing:.4px; margin-bottom:3px; }
+  footer { text-align:center; color:var(--muted); font-size:13px; padding:30px 16px 44px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Intro<span>loop</span></h1>
+  <p>The portfolio-intelligence agent team for venture funds: <b>Scout</b> spots the need,
+     <b>Atlas</b> finds who can help, <b>Bridge</b> makes the introduction, <b>Echo</b> closes the loop.
+     Bring-your-own-agent: Introloop runs inside the assistant your fund already uses.</p>
+</header>
+
+<section>
+  <div class="platform"><div class="dot" style="background:var(--muse)"></div>
+    <div><h2>On Muse</h2><p>For the partner whose own assistant runs the fund's follow-through</p></div></div>
+  <div class="grid">
+
+    <div class="mock">
+      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 1</div>
+      <h3>The 7 AM briefing</h3>
+      <div class="body">
+        <div class="msg user">Morning. What needs me today?</div>
+        <div class="cardbox">
+          <div class="who">INTROLOOP BRIEFING &middot; OVERNIGHT</div>
+          <b>Relay</b> needs help turning pilots into paying customers. Scout: explicit need,
+          founder's own words attached. Atlas: best match is <b>Maya Bennett</b> (Partner B's contact,
+          sold AI software to insurers, score 12.2, uncertainty medium). Bridge: card ready.
+          Maya is inside her consent envelope, so your approval is the only gate.
+          <div class="btns"><span class="btn primary">Approve intro</span><span class="btn">See evidence</span><span class="btn">Pass</span></div>
+        </div>
+      </div>
+      <p class="why">Why it matters: the partner starts the day with one decision, not forty unread founder updates.</p>
+    </div>
+
+    <div class="mock">
+      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 2</div>
+      <h3>Proof on demand</h3>
+      <div class="body">
+        <div class="msg user">Why Maya? Show me the evidence before I approve anything.</div>
+        <div class="cardbox">
+          <div class="who">PRISM EVALUATION &middot; 6/6 CHECKS PASSED</div>
+          Evidence: "Three potential customers are stuck in security and procurement reviews"
+          (founder update, Oct 23). Relationship claim supported: LinkedIn record, strength 4/5,
+          owned by Partner B. Akta context: Relay, AI claims automation, 60 employees,
+          partnership live with Meridian Mutual.
+          <div class="chips"><span class="chip">evidence verbatim</span><span class="chip">no unsupported claims</span><span class="chip">akta sourced</span></div>
+        </div>
+      </div>
+      <p class="why">Why it matters: every recommendation an investor sees can be audited back to the data that produced it.</p>
+    </div>
+
+    <div class="mock">
+      <div class="bar" style="background:var(--muse)">Muse &middot; Use case 3</div>
+      <h3>The loop closes itself</h3>
+      <div class="body">
+        <div class="msg agent"><div class="who">ECHO &middot; FOLLOW-THROUGH</div>
+          Relay and Maya connected on Tuesday. The founder marked the help useful, so the pattern
+          is reinforced for the next insurance need. Scorecards: Scout +10, Atlas +5.
+          Atlas also took a strike: its Northwind pick passed. Nothing was hidden.</div>
+        <div class="btns"><span class="btn">View scorecards</span><span class="btn">Weekly rollup</span></div>
+      </div>
+      <p class="why">Why it matters: outcomes are captured even when the founder forgets to report back, and the agents' track record is visible.</p>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="platform"><div class="dot" style="background:var(--instinct)"></div>
+    <div><h2>On Instinct</h2><p>For the fund that wants the work done before anyone asks</p></div></div>
+  <div class="grid">
+
+    <div class="mock">
+      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 1</div>
+      <h3>It worked overnight</h3>
+      <div class="body">
+        <div class="msg sys"><div class="who">PROACTIVE CYCLE &middot; 6:12 AM &middot; NOBODY ASKED</div>
+          Watch cycle complete. New Akta signal: VoltPack posted 6 new roles.
+          Scout prepared a bridge-raise action card. Echo sent 2 follow-up nudges
+          (earned autonomy, L2). One card is waiting for a partner.</div>
+        <div class="btns"><span class="btn primary">Review the card</span><span class="btn">Read the briefing</span></div>
+      </div>
+      <p class="why">Why it matters: portfolio support stops being reactive inbox triage and starts being a system that runs itself.</p>
+    </div>
+
+    <div class="mock">
+      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 2</div>
+      <h3>Inbox, annotated</h3>
+      <div class="body">
+        <div class="cardbox">
+          <div class="who">FOUNDER UPDATE &middot; RELAY &middot; INBOX</div>
+          "Investor update: three potential customers are stuck in security and procurement
+          reviews. Turning pilots into paying customers is our number one bottleneck."
+          <div class="chips"><span class="chip">Scout: need spotted</span><span class="chip">explicit, founder's words</span></div>
+          <div class="btns"><span class="btn primary">Confirm with founder</span><span class="btn">Find who can help</span></div>
+        </div>
+      </div>
+      <p class="why">Why it matters: the signal is caught where it lands, inside the inbox, not in a spreadsheet someone updates monthly.</p>
+    </div>
+
+    <div class="mock">
+      <div class="bar" style="background:var(--instinct)">Instinct &middot; Use case 3</div>
+      <h3>Autonomy, earned in public</h3>
+      <div class="body">
+        <div class="msg sys"><div class="who">TRUST LADDER &middot; LEVEL UP</div>
+          Introloop reached <b>L3 Connector</b> (60 XP, 3 verified wins). Unlocked: sending
+          double-opt-in first asks on approved needs. Current strikes: 1 (Atlas, dead pick).
+          Three strikes demote. Every action it took unsupervised is in the trace.</div>
+        <div class="btns"><span class="btn">View the trace</span><span class="btn">Set the envelope</span></div>
+      </div>
+      <p class="why">Why it matters: investors can grant an agent more access safely, because the access is earned by verified outcomes and lost by mistakes.</p>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="platform"><div class="dot" style="background:var(--dots)"></div>
+    <div><h2>On Dots</h2><p>For the whole firm: one shared workspace, one collective network</p></div></div>
+  <div class="grid">
+
+    <div class="mock">
+      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 1</div>
+      <h3>The firm feed</h3>
+      <div class="body">
+        <div class="msg agent"><div class="who">#PORTFOLIO-OPS &middot; INTROLOOP FEED</div>
+          Giulio's intro worked: Sarah Kim (Northgate Retail) took the meeting with RouteWise.
+          This week's rollup is pinned: 11 intros proposed, 4 meetings, 1 need resolved as useful.</div>
+        <div class="chips"><span class="chip">reply rate up</span><span class="chip">top connector: Partner B</span></div>
+      </div>
+      <p class="why">Why it matters: every partner sees the network working, so the whole firm's relationships compound instead of sitting in private inboxes.</p>
+    </div>
+
+    <div class="mock">
+      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 2</div>
+      <h3>The colleague ask</h3>
+      <div class="body">
+        <div class="msg agent"><div class="who">ATLAS &middot; TO ALL PARTNERS</div>
+          Who knows someone who has sold AI software to insurers and navigated their security reviews?
+          Relay needs exactly that.</div>
+        <div class="msg user"><div class="who">PARTNER B</div>
+          Maya Bennett, my contact at InsurTech Group. She has done this twice.</div>
+        <div class="msg agent"><div class="who">ATLAS</div>
+          Candidate saved with evidence and uncertainty noted. Bridge is preparing the card,
+          and the draft routes to Partner B for approval, since it is his relationship.</div>
+      </div>
+      <p class="why">Why it matters: when the answer lives in a colleague's relationships, the agent asks the room instead of guessing.</p>
+    </div>
+
+    <div class="mock">
+      <div class="bar" style="background:var(--dots)">Dots &middot; Use case 3</div>
+      <h3>Agent to agent</h3>
+      <div class="body">
+        <div class="msg sys"><div class="who">ROUNDTABLE &middot; INCOMING FROM RELAY'S FOUNDER AGENT</div>
+          Need shared with its case file: company profile, the founder's evidence, and the
+          full trace of how the need was detected.</div>
+        <div class="msg agent"><div class="who">INTROLOOP VIA DOTS</div>
+          Received. Atlas found 3 possible connections in the fund's network.
+          The top match is ready for partner review; the other two carry higher uncertainty and say so.</div>
+        <div class="btns"><span class="btn primary">Review top match</span><span class="btn">See all three</span></div>
+      </div>
+      <p class="why">Why it matters: founders' agents and funds' agents can cooperate directly, with the fund's approval rules still in charge.</p>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  Introloop is bring-your-own-agent: one skill any host agent can run, state on the fund's own machine.<br>
+  Data and signals by Akta.pro &middot; Model calls by Nicrron &middot; Traced and evaluated by PRISM (Block Convey) &middot; Agent-to-agent via Roundtable
+</footer>
+
+</body>
+</html>
