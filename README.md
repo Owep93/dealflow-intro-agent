@@ -135,6 +135,40 @@ In the demo you watch it happen: one meeting and one "useful" resolution
 take the agent from L1 to L2 live. Automation here is *earned*, never
 given, and a human always approves the first intro to anyone.
 
+**Per-agent scorecards: rewards and penalties, by name.** The Trust
+Ladder gates what the system may do; the scorecards show which agent
+earned it and which one is costing it. Each agent is rewarded only for
+verified work in its own lane, and penalized for its own mess-ups:
+
+| Agent | Rewarded for | Penalized for |
+|---|---|---|
+| Scout | Founder confirms its need (+5); the need resolves as useful help (+10) | Pushing a need that turns out not useful (−5, strike) |
+| Atlas | Its pick replies (+3), meets (+10), becomes a customer (+25), connects (+5) | Its pick passes or never replies (−4, strike) |
+| Bridge | A card that passes fit + duplicate checks (+2) | Proposing a duplicate introduction (−3, strike) |
+| Echo | Every real outcome it captures (+3) | An intro its follow-through failed to land (−2) |
+
+Three strikes demote that agent a level, independently of the others.
+Run `python3 agent.py scorecards`. The demo shows both sides live: Atlas
+banks +15 for the Relay win, then takes −4 and a strike when another of
+its picks passes.
+
+## The Consent Envelope: consent, moved upstream
+
+Double opt-in is right, but asking from zero every time is slow. So a
+contact can set **standing consent once**: the topics they welcome
+intros on, and optionally a monthly cap. A match inside the envelope
+skips the permission round trip: the partner still approves the action
+card, and the contact gets a one-tap notification with tighten / opt-out
+built in. Outside the envelope, the classic one-tap Yes / Pass ask
+applies, with a 72-hour expiry in production. And consent learns: when a
+contact says yes to a kind of intro and holds no envelope, the agent
+suggests offering them one. Consent is never recorded that was not
+actually given, and the agent never widens an envelope on its own.
+
+In the demo, Maya holds an envelope (insurer intros, cap 2/month), so
+Relay's intro is a notification, not an ask. Sarah Kim holds none, so
+RouteWise gets the classic double opt-in. Run `python3 agent.py consents`.
+
 ## Connected to every channel an investor actually uses
 
 Investors do not live in one inbox. The agent works across all of it,
@@ -207,6 +241,10 @@ python3 agent.py trace       # PRISM trace of everything the agents did
 python3 agent.py evaluate    # PRISM: is each recommendation supported by the evidence?
 python3 agent.py share --need need_001   # Roundtable: share a need agent-to-agent
 python3 agent.py receive roundtable_need.json   # receive one the same way
+python3 agent.py scorecards  # per-agent rewards and penalties
+python3 agent.py consents    # standing consent envelopes on file
+python3 agent.py consent --contact c003_sarah --topics "retail|operations" --max 1
+python3 agent.py confirmed --need need_003   # founder confirmed a possible need
 ```
 
 No dependencies. Python 3 standard library only. State is one local

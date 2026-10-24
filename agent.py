@@ -216,6 +216,137 @@ def show_agent() -> None:
           f"{p['routed_to_human']} routed to a human, every one logged.")
 
 # --------------------------------------------------------------------------
+# Per-agent scorecards: each of the four agents earns its own rewards and
+# takes its own penalties. The team Trust Ladder above gates what the
+# SYSTEM may do unsupervised; the scorecards show WHO earned it and who
+# is costing it. Same rules: XP only for verified outcomes, penalties
+# and strikes for mess-ups, 3 strikes demote that agent a level.
+# --------------------------------------------------------------------------
+
+AGENT_EVENTS = {
+    # (agent, event): (points, counts_as_win, is_strike)
+    ("Scout", "need_confirmed"):  (5, False, False),   # founder confirms a possible need
+    ("Scout", "need_useful"):     (10, True, False),   # its need resolved as useful help
+    ("Scout", "need_not_useful"): (-5, False, True),   # it pushed a need that was not real
+    ("Atlas", "pick_replied"):    (3, False, False),
+    ("Atlas", "pick_meeting"):    (10, True, False),
+    ("Atlas", "pick_customer"):   (25, True, False),
+    ("Atlas", "pick_connected"):  (5, False, False),   # its pick actually connected
+    ("Atlas", "pick_dead"):       (-4, False, True),   # its pick passed or never replied
+    ("Bridge", "clean_card"):     (2, False, False),   # card passed fit + duplicate checks
+    ("Bridge", "duplicate"):      (-3, False, True),   # it tried to propose a duplicate
+    ("Echo", "outcome_captured"): (3, False, False),   # it closed the loop with a real outcome
+    ("Echo", "loop_unclosed"):    (-2, False, False),  # follow-through did not land the intro
+}
+
+def scorecard(state: dict, agent: str) -> dict:
+    return state.setdefault("scorecards", {}).setdefault(
+        agent, {"xp": 0, "level": START_LEVEL, "wins": 0, "strikes": 0, "history": []})
+
+def agent_award(state: dict, agent: str, event: str) -> None:
+    spec = AGENT_EVENTS.get((agent, event))
+    if not spec:
+        return
+    pts, win, strike = spec
+    sc = scorecard(state, agent)
+    sc["xp"] = max(0, sc["xp"] + pts)
+    if win:
+        sc["wins"] += 1
+    if strike:
+        sc["strikes"] += 1
+    elif pts > 0:
+        sc["strikes"] = max(0, sc["strikes"] - 1)
+    sc["history"].append({"date": date.today().isoformat(), "event": event, "points": pts})
+    sign = "+" if pts > 0 else ""
+    print(f"  [{agent.lower()}-score] {event}: {sign}{pts} XP (total {sc['xp']}, strikes {sc['strikes']})")
+    earned = START_LEVEL
+    for lv in LEVELS:
+        if sc["xp"] >= lv["xp"] and sc["wins"] >= lv["wins"]:
+            earned = max(earned, lv["level"])
+    if sc["strikes"] >= 3:
+        earned = max(0, earned - 1)
+        sc["strikes"] = 0
+        print(f"  [{agent.lower()}-score] 3 strikes: {agent} DEMOTED a level. It re-earns trust the same way it lost it.")
+    if earned > sc["level"]:
+        sc["level"] = earned
+        print(f"  [{agent.lower()}-score] LEVEL UP -> L{earned} {LEVELS[earned]['name']}")
+    elif earned < sc["level"]:
+        sc["level"] = earned
+
+def show_scorecards() -> None:
+    state = load()
+    print("Per-agent scorecards (rewards for verified work, penalties for mess-ups):")
+    for agent in AGENTS:
+        sc = scorecard(state, agent)
+        print(f"  {agent:<7} L{sc['level']} {LEVELS[sc['level']]['name']:<11} "
+              f"XP {sc['xp']:<4} wins {sc['wins']}  strikes {sc['strikes']}")
+
+# --------------------------------------------------------------------------
+# Consent Envelope: consent moves upstream. A contact sets standing
+# consent once: the topics they welcome, optionally a monthly cap. A
+# match inside the envelope skips the double-opt-in round trip (the
+# partner still approves the card; the contact gets a one-tap
+# notification with tighten / opt-out). Outside the envelope, the
+# classic one-tap Yes / Pass ask applies. Consent is never recorded
+# that was not actually given.
+# --------------------------------------------------------------------------
+
+def consent_for(state: dict, contact_id: str) -> dict | None:
+    return state.get("consent", {}).get(contact_id)
+
+def envelope_status(state: dict, contact: dict, need_text: str) -> tuple[bool, str, int]:
+    env = consent_for(state, contact["id"])
+    if not env:
+        return False, "no standing envelope: double opt-in ask applies", 0
+    need_words = {w.strip(".,").lower() for w in need_text.split() if len(w) > 2}
+    topic_words = {w for t in env["topics"] for w in t.lower().split()}
+    if not (need_words & topic_words):
+        return False, f"outside the envelope (covers: {', '.join(env['topics'])})", 0
+    month = date.today().isoformat()[:7]
+    used = sum(1 for i in state["intros"]
+               if i["contact_id"] == contact["id"] and i["created"].startswith(month))
+    cap = env.get("max_per_month") or 0
+    if cap and used >= cap:
+        return False, f"envelope cap reached ({used}/{cap} this month)", used
+    return True, f"inside the envelope (covers: {', '.join(env['topics'])}; {used}/{cap or 'no'} used this month)", used
+
+def set_consent(contact_id: str, topics: str, max_per_month: int = 0) -> None:
+    state = load()
+    c = next((x for x in state["contacts"] if x["id"] == contact_id), None)
+    if not c:
+        sys.exit(f"No contact {contact_id}")
+    state.setdefault("consent", {})[contact_id] = {
+        "topics": [t.strip().lower() for t in topics.split("|") if t.strip()],
+        "max_per_month": max_per_month, "set_on": date.today().isoformat()}
+    save(state)
+    print(f"Consent envelope set for {c['name']}: topics [{topics}], cap {max_per_month or 'none'}/month. "
+          f"Recorded as given by the contact; never widened by the agent.")
+
+def show_consents() -> None:
+    state = load()
+    envs = state.get("consent", {})
+    if not envs:
+        print("No consent envelopes on file. Every intro uses the double opt-in ask.")
+        return
+    for cid, env in envs.items():
+        c = next((x for x in state["contacts"] if x["id"] == cid), {"name": cid})
+        print(f"  {c['name']}: covers [{', '.join(env['topics'])}], "
+              f"cap {env.get('max_per_month') or 'none'}/month, set {env['set_on']}")
+
+def founder_confirm(need_id: str) -> None:
+    """The founder answered the confirmation draft: yes, this need is
+    real. Scout earns for a correct spot, and the need turns explicit."""
+    state = load()
+    need = next((n for n in state["needs"] if n["id"] == need_id), None)
+    if not need:
+        sys.exit(f"No need {need_id}")
+    need["certainty"] = "explicit"
+    agent_award(state, "Scout", "need_confirmed")
+    trace(state, "Scout", "confirmed", f"{need['company']}: founder confirmed the need")
+    save(state)
+    print(f"Confirmed {need_id}: {need['company']} — need is now explicit and actionable.")
+
+# --------------------------------------------------------------------------
 # Data model
 # --------------------------------------------------------------------------
 
@@ -398,6 +529,8 @@ def load() -> dict:
         for key in ("contacts", "intros", "feed", "signals", "needs", "outbox", "trace"):
             state.setdefault(key, [])
         state.setdefault("profiles", {})
+        state.setdefault("consent", {})
+        state.setdefault("scorecards", {})
         agent_profile(state)
         return state
     return {"contacts": [], "intros": [], "feed": [], "signals": [], "needs": [],
@@ -556,9 +689,14 @@ def action(need_id: str) -> None:
         print(f"Bridge check: DUPLICATE. {best['name']} was already proposed for this "
               f"need on {dup['created']} ({dup['id']}, status {dup['status']}). Not proposing again.")
         trace(state, "Bridge", "duplicate_blocked", f"{need['company']} -> {best['name']} ({dup['id']})")
+        agent_award(state, "Bridge", "duplicate")
         save(state)
         return
     print(f"Bridge check: fit confirmed (score {fit:.1f}), no duplicate intro on file.")
+    covered, why, _used = envelope_status(state, best, need["need"])
+    print(f"Consent: {why}. " + ("No permission round trip needed on the contact side; "
+          "the partner's approval of this card is the only gate." if covered else
+          "Bridge will run the double opt-in ask."))
     print(f"\nRecommended action: introduction to {best['name']}, {best['role']}, {best['company']}")
     print(f"Evidenced relationship: strength {best['strength']}/5, source {best['source']}, "
           f"known by {best['owner_partner'] or 'the fund'}, past intro wins {best['wins']}")
@@ -572,6 +710,7 @@ def action(need_id: str) -> None:
         contact_id=best["id"], partner=best["owner_partner"],
         created=date.today().isoformat(), last_touch=date.today().isoformat())))
     need["status"] = "actioned"
+    agent_award(state, "Bridge", "clean_card")
     trace(state, "Bridge", "action",
           f"Action card prepared: intro {need['company']} -> {best['name']} (draft {iid})")
     enr = akta_enrich(need["company"]) or {}
@@ -610,6 +749,12 @@ def resolve(need_id: str, connected: str, useful: str) -> None:
     need["useful"] = useful
     trace(state, "Echo", "resolve",
           f"{need['company']}: connected={connected}, useful={useful}")
+    agent_award(state, "Echo", "outcome_captured")
+    agent_award(state, "Scout", "need_useful" if useful == "yes" else "need_not_useful")
+    if connected == "yes":
+        agent_award(state, "Atlas", "pick_connected")
+    else:
+        agent_award(state, "Echo", "loop_unclosed")
     if connected == "yes":
         award(state, "connected")
     award(state, "useful" if useful == "yes" else "not_useful")
@@ -654,6 +799,13 @@ def ingest_csv(path: str, partner: str = "") -> None:
             )))
             known.add(key)
             added += 1
+            topics = [t.strip().lower() for t in (row.get("consent_topics") or "").split("|") if t.strip()]
+            if topics:
+                cid = state["contacts"][-1]["id"]
+                state.setdefault("consent", {})[cid] = {
+                    "topics": topics,
+                    "max_per_month": int(row.get("consent_max") or 0),
+                    "set_on": date.today().isoformat()}
     save(state)
     print(f"Ingested {added} new contacts. Total: {len(state['contacts'])}")
 
@@ -706,6 +858,21 @@ def draft(intro_id: str) -> str:
         sys.exit(f"No intro {intro_id}")
     c = next(x for x in state["contacts"] if x["id"] == intro["contact_id"])
     first = c["name"].split()[0]
+    covered, why, _u = envelope_status(state, c, intro["need"])
+    if covered:
+        text = (
+            f"Subject: Connecting you — {intro['portfolio_company']}\n\n"
+            f"Hi {first},\n\n"
+            f"Connecting you with the team at {intro['portfolio_company']}: {intro['need']}. "
+            f"This is inside the standing consent you set ({why}), so no permission "
+            f"round trip: the introduction follows this note.\n"
+            f"One tap tightens or pauses your envelope at any time.\n\n"
+            f"Thanks,\n{intro['partner'] or 'Your partner at the fund'}\n\n"
+            f"[AGENT NOTE: consent-envelope notification. The partner still approved "
+            f"the action card; the contact pre-consented to this category.]"
+        )
+        print(text)
+        return text
     text = (
         f"Subject: Quick intro request — {intro['portfolio_company']}\n\n"
         f"Hi {first},\n\n"
@@ -714,7 +881,8 @@ def draft(intro_id: str) -> str:
         f"Given your work at {c['company']}, I thought of you first. "
         f"Happy to send a two-line blurb first if you'd rather see it before I connect you both.\n\n"
         f"Thanks,\n{intro['partner'] or 'Your partner at the fund'}\n\n"
-        f"[AGENT NOTE: draft only. Sent only after {intro['partner'] or 'the partner'} approves.]"
+        f"[AGENT NOTE: draft only. Sent only after {intro['partner'] or 'the partner'} approves. "
+        f"Consent: {why}.]"
     )
     print(text)
     return text
@@ -756,13 +924,20 @@ def record(intro_id: str, outcome: str) -> None:
     intro["last_touch"] = date.today().isoformat()
     trace(state, "Echo", "record", f"{intro_id} -> {outcome}")
     c = next(x for x in state["contacts"] if x["id"] == intro["contact_id"])
+    agent_award(state, "Echo", "outcome_captured")
     if outcome in ("replied", "meeting", "customer"):
         c["wins"] += 1
         award(state, outcome)   # verified good outcome: the agent earns trust
+        agent_award(state, "Atlas", {"replied": "pick_replied", "meeting": "pick_meeting",
+                                     "customer": "pick_customer"}[outcome])
+        if not consent_for(state, c["id"]):
+            print(f"  [consent] {c['name']} said yes to this kind of intro. Offer them a "
+                  f"consent envelope so the next one skips the round trip.")
         post_feed(state, f"{intro['partner'] or 'A partner'}'s intro worked: "
                          f"{c['name']} ({c['company']}) -> {outcome} for {intro['portfolio_company']}")
     elif outcome in ("passed", "no_response"):
         award(state, outcome)   # dead intro: small penalty + a strike
+        agent_award(state, "Atlas", "pick_dead")   # Atlas owns its picks
         c["fails"] += 1
         if c["fails"] >= SCRATCH_THRESHOLD and not c["scratched"]:
             c["scratched"] = True
@@ -787,6 +962,10 @@ def analytics(write_html: bool = True) -> dict:
     sent = sum(v for k, v in by_status.items() if k not in ("proposed",))
     _p = agent_profile(state)
     stats = {
+        "agent_scorecards": {a: {"level": s["level"], "xp": s["xp"], "wins": s["wins"],
+                                 "strikes": s["strikes"]}
+                             for a, s in state.get("scorecards", {}).items()},
+        "consent_envelopes": len(state.get("consent", {})),
         "agent_trust": {"level": _p["level"], "name": LEVELS[_p["level"]]["name"],
                         "xp": _p["xp"], "wins": _p["wins"], "strikes": _p["strikes"],
                         "autonomous_actions": _p["autonomous_actions"],
@@ -1200,6 +1379,14 @@ def demo() -> None:
     followups()
     print("\n=== 5. THE REWARD: verified outcomes earned the agent more trust ===")
     show_agent()
+    print("\n--- And the penalty: not every pick lands ---")
+    hero = explicit["company"] if explicit else ""
+    proposed = [i for i in load()["intros"]
+                if i["status"] == "proposed" and i["portfolio_company"] != hero]
+    if proposed:
+        record(proposed[0]["id"], "passed")
+    print()
+    show_scorecards()
     print("\n=== 6. PRISM: is every recommendation supported by the evidence? ===")
     evaluate()
     print("\n--- Analytics ---")
@@ -1230,6 +1417,11 @@ def main() -> None:
     sub.add_parser("agent")      # trust profile: level, XP, unlocks
     sub.add_parser("connectors") # every channel the agent works across
     sub.add_parser("agents")     # Scout, Atlas, Bridge, Echo
+    sub.add_parser("scorecards") # per-agent rewards and penalties
+    sub.add_parser("consents")   # standing consent envelopes on file
+    cs = sub.add_parser("consent"); cs.add_argument("--contact", required=True)
+    cs.add_argument("--topics", required=True); cs.add_argument("--max", type=int, default=0)
+    fc = sub.add_parser("confirmed"); fc.add_argument("--need", required=True)
     sub.add_parser("sponsors")   # sponsor integrations and their status
     sub.add_parser("trace")      # PRISM trace of everything the agents did
     sub.add_parser("evaluate")   # PRISM: recommendations vs retrieved evidence
@@ -1255,7 +1447,11 @@ def main() -> None:
     elif a.cmd == "run": run_cycle()
     elif a.cmd == "watch": watch(a.interval)
     elif a.cmd == "agent": show_agent()
-    elif a.cmd == "agents": show_agents()
+    elif a.cmd == "agents": show_agents(); print(); show_scorecards()
+    elif a.cmd == "scorecards": show_scorecards()
+    elif a.cmd == "consents": show_consents()
+    elif a.cmd == "consent": set_consent(a.contact, a.topics, a.max)
+    elif a.cmd == "confirmed": founder_confirm(a.need)
     elif a.cmd == "sponsors": show_sponsors()
     elif a.cmd == "trace": show_trace()
     elif a.cmd == "evaluate": evaluate()

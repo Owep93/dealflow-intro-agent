@@ -1,4 +1,4 @@
-name,email,company,role,topics,strength,source,owner_partner,socials,channel
+name,email,company,role,topics,strength,source,owner_partner,socials,channel,consent_topics,consent_max
 Rachel Donovan,rachel@example.com,Meridian Retail Group,VP Store Operations,retail|store operations|expansion,4,linkedin,Giulio,linkedin:rachel-donovan,email
 David Chen,david@example.com,Brightline Logistics,VP Operations,logistics|operations|warehouses,3,linkedin,Giulio,x:@davidchen|whatsapp,whatsapp
 Sarah Kim,sarah@example.com,Northgate Retail,VP Operations,retail|operations|expansion,5,email,Giulio,linkedin:sarah-kim,linkedin
@@ -11,4 +11,4 @@ Dana Whitfield,dana@example.com,National Retail Partners,VP Distribution,distrib
 Omar Farouk,omar@example.com,Southeast Logistics Group,Director of Distribution,distribution|logistics|southeast,4,linkedin,Partner B,x:@omarfarouk,x
 Dead End Dan,dan@example.com,OldCo,Manager,operations,2,email,Giulio,,email
 Busy Beth,beth@example.com,BigCorp,VP Operations,operations|procurement,2,linkedin,Partner C,,email
-Maya Bennett,maya@example.com,InsurTech Group,VP Enterprise Sales,insurer sales|security reviews|procurement|enterprise ai,4,linkedin,Partner B,linkedin:maya-bennett,linkedin
+Maya Bennett,maya@example.com,InsurTech Group,VP Enterprise Sales,insurer sales|security reviews|procurement|enterprise ai,4,linkedin,Partner B,linkedin:maya-bennett,linkedin,insurer|security reviews|procurement,2

@@ -56,6 +56,15 @@ Four named agents, one workflow. Speak of them by name when you report:
 7. **Candidates carry uncertainty.** Atlas saves every candidate with
    its evidence and an uncertainty level; a contact with no past intro
    outcomes is unproven, and the card must say so.
+8. **Respect the consent envelope.** If the matched contact holds a
+   standing envelope covering the need (topics + monthly cap), skip the
+   double-opt-in ask and send the notification draft; the partner's card
+   approval is still required. Outside the envelope, always run the
+   ask. Never record or widen consent that was not actually given.
+9. **Scorecards are accountability, not decoration.** Rewards and
+   penalties land on the agent whose lane the outcome belongs to
+   (Scout's needs, Atlas's picks, Bridge's cards, Echo's follow-through).
+   Report strikes and demotions plainly; never hide a penalty.
 
 ## Rules
 1. **Never send an intro without the partner's explicit approval.**
