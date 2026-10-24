@@ -61,6 +61,27 @@ Usage:
   python3 agent.py record --intro intro_001 --outcome meeting
   python3 agent.py analytics                   # print stats + write analytics.html
   python3 agent.py feed                        # firm activity feed (Slack-ready)
+  python3 agent.py run                         # ONE proactive cycle (see below)
+  python3 agent.py watch --interval 60         # proactive loop, every N minutes
+  python3 agent.py agent                       # trust profile: level, XP, unlocks
+
+Proactive mode:
+  The agent does not wait to be asked. Each cycle it reads new portfolio
+  updates from inbox/, detects needs, prepares action cards, queues
+  follow-up nudges, and writes briefing.md. Sends go through the outbox:
+  auto-approved only at a trust level that has EARNED that action;
+  everything else waits for a human. The host agent (the VC's own Muse
+  or other assistant) executes the outbox through its connected mailbox,
+  which is why this script never holds mailbox passwords.
+
+Reward mechanism (Trust Ladder):
+  Verified outcomes pay XP: reply +3, meeting +10, customer +25, founder
+  connected +5, help marked useful +15, confirmed need +5. Dead intros
+  cost XP and add strikes; 3 strikes demote a level. Levels unlock real
+  access: L1 Drafter (drafts only), L2 Coordinator (sends follow-up
+  nudges itself, posts to Slack), L3 Connector (sends double-opt-in
+  first asks on approved needs), L4 Operator (books meetings, updates
+  the CRM, briefs partners unprompted). Automation is earned, never given.
 
 Outcomes: replied | meeting | customer | passed | no_response
 Scratch rule: 3 x (passed | no_response) on a contact -> scratched.
@@ -78,9 +99,121 @@ from datetime import date, timedelta
 from pathlib import Path
 
 STORE = Path(__file__).with_name("state.json")
+INBOX = Path(__file__).with_name("inbox")        # drop signal CSVs here
 SCRATCH_THRESHOLD = 3          # failed intros before a contact is scratched
 FOLLOWUP_EVERY_DAYS = 3        # nudge cadence while an intro is open
 WEEKLY_ROLLUP_DAYS = 7
+
+# --------------------------------------------------------------------------
+# The reward mechanism: a TRUST LADDER (earned autonomy, not blind autonomy)
+#
+# The agent earns XP for VERIFIED good outcomes only: a reply, a meeting,
+# a customer, a founder confirming a detected need, help marked useful.
+# Bad outcomes cost XP and add a strike. At XP + verified-win thresholds
+# the agent LEVELS UP and unlocks more access and more autonomy. Three
+# strikes demote it a level: trust is earned slowly and lost fast.
+# Every autonomous action is logged; everything above the agent's level
+# is routed to a human. A human always approves the FIRST intro to anyone.
+# --------------------------------------------------------------------------
+
+REWARDS = {"replied": 3, "meeting": 10, "customer": 25,
+           "connected": 5, "useful": 15, "confirmed_need": 5}
+PENALTIES = {"passed": -2, "no_response": -2, "not_useful": -5, "wrong_need": -5}
+
+LEVELS = [
+    {"level": 0, "name": "Observer", "xp": 0, "wins": 0,
+     "unlocks": ["read signals", "detect needs", "report only"]},
+    {"level": 1, "name": "Drafter", "xp": 0, "wins": 0,
+     "unlocks": ["draft intros and founder confirmations", "propose ranked matches"]},
+    {"level": 2, "name": "Coordinator", "xp": 20, "wins": 1,
+     "unlocks": ["send follow-up nudges on approved intros without asking each time",
+                 "post the firm feed to Slack", "hold calendar slots for meetings"]},
+    {"level": 3, "name": "Connector", "xp": 60, "wins": 3,
+     "unlocks": ["send the double-opt-in first ask for high-scoring matches on approved needs",
+                 "enrich contacts from email history automatically"]},
+    {"level": 4, "name": "Operator", "xp": 150, "wins": 8,
+     "unlocks": ["manage correspondence end to end", "book meetings",
+                 "update the CRM", "send the weekly partner briefing unprompted"]},
+]
+START_LEVEL = 1   # a new agent starts as a Drafter: useful, but supervised
+
+def default_agent() -> dict:
+    return {"xp": 0, "level": START_LEVEL, "strikes": 0, "wins": 0,
+            "autonomous_actions": 0, "routed_to_human": 0, "history": []}
+
+def agent_profile(state: dict) -> dict:
+    state.setdefault("agent", default_agent())
+    for k, v in default_agent().items():
+        state["agent"].setdefault(k, v)
+    return state["agent"]
+
+def recompute_level(state: dict) -> None:
+    p = agent_profile(state)
+    earned = START_LEVEL
+    for lv in LEVELS:
+        if p["xp"] >= lv["xp"] and p["wins"] >= lv["wins"]:
+            earned = max(earned, lv["level"])
+    if p["strikes"] >= 3:                      # three strikes: demotion
+        earned = max(0, earned - 1)
+        p["strikes"] = 0
+        print("  [trust] 3 strikes: agent DEMOTED a level. Trust is lost fast.")
+    if earned > p["level"]:
+        p["level"] = earned
+        new = LEVELS[earned]
+        print(f"  [trust] LEVEL UP -> L{earned} {new['name']}. Unlocked: "
+              + "; ".join(new["unlocks"]))
+    elif earned < p["level"]:
+        p["level"] = earned
+
+def award(state: dict, event: str) -> None:
+    """Apply a reward or penalty from a VERIFIED outcome, then re-level."""
+    p = agent_profile(state)
+    pts = REWARDS.get(event, PENALTIES.get(event, 0))
+    if pts == 0:
+        return
+    p["xp"] = max(0, p["xp"] + pts)
+    if event in ("meeting", "customer"):
+        p["wins"] += 1
+    if pts > 0:
+        p["strikes"] = max(0, p["strikes"] - 1)   # good work clears strikes
+    else:
+        p["strikes"] += 1
+    p["history"].append({"date": date.today().isoformat(), "event": event, "points": pts})
+    sign = "+" if pts > 0 else ""
+    print(f"  [trust] {event}: {sign}{pts} XP (total {p['xp']}, level {p['level']})")
+    recompute_level(state)
+
+def can(state: dict, min_level: int) -> bool:
+    return agent_profile(state)["level"] >= min_level
+
+def queue_outbox(state: dict, kind: str, text: str, min_level: int) -> dict:
+    """Everything the agent wants to send goes through the outbox.
+    At or above its trust level for that action it is auto-approved;
+    below it, the item is routed to a human. Nothing is ever silently sent."""
+    p = agent_profile(state)
+    auto = can(state, min_level)
+    item = {"date": date.today().isoformat(), "kind": kind, "text": text,
+            "status": "auto_approved" if auto else "awaiting_human_approval",
+            "agent_level": p["level"]}
+    state.setdefault("outbox", []).append(item)
+    if auto:
+        p["autonomous_actions"] += 1
+    else:
+        p["routed_to_human"] += 1
+    return item
+
+def show_agent() -> None:
+    state = load()
+    p = agent_profile(state)
+    lv = LEVELS[p["level"]]
+    nxt = LEVELS[p["level"] + 1] if p["level"] + 1 < len(LEVELS) else None
+    print(f"Agent trust: L{p['level']} {lv['name']} | XP {p['xp']} | wins {p['wins']} | strikes {p['strikes']}")
+    print(f"Unlocked now: {'; '.join(lv['unlocks'])}")
+    if nxt:
+        print(f"Next: L{nxt['level']} {nxt['name']} at {nxt['xp']} XP and {nxt['wins']} wins. "
+              f"Unlocks: {'; '.join(nxt['unlocks'])}")
+    print(f"Earned-automation row: {p['autonomous_actions']} actions taken autonomously, "
+          f"{p['routed_to_human']} routed to a human, every one logged.")
 
 # --------------------------------------------------------------------------
 # Data model
@@ -140,10 +273,12 @@ class Intro:
 def load() -> dict:
     if STORE.exists():
         state = json.loads(STORE.read_text())
-        for key in ("contacts", "intros", "feed", "signals", "needs"):
+        for key in ("contacts", "intros", "feed", "signals", "needs", "outbox"):
             state.setdefault(key, [])
+        agent_profile(state)
         return state
-    return {"contacts": [], "intros": [], "feed": [], "signals": [], "needs": []}
+    return {"contacts": [], "intros": [], "feed": [], "signals": [], "needs": [],
+            "outbox": [], "agent": default_agent()}
 
 def save(state: dict) -> None:
     STORE.write_text(json.dumps(state, indent=2))
@@ -301,6 +436,9 @@ def resolve(need_id: str, connected: str, useful: str) -> None:
     need["status"] = "resolved"
     need["connected"] = connected
     need["useful"] = useful
+    if connected == "yes":
+        award(state, "connected")
+    award(state, "useful" if useful == "yes" else "not_useful")
     post_feed(state, f"{need['company']}: need '{need['need']}' resolved. "
                      f"Founder connected: {connected}. Help useful: {useful}.")
     save(state)
@@ -442,9 +580,11 @@ def record(intro_id: str, outcome: str) -> None:
     c = next(x for x in state["contacts"] if x["id"] == intro["contact_id"])
     if outcome in ("replied", "meeting", "customer"):
         c["wins"] += 1
+        award(state, outcome)   # verified good outcome: the agent earns trust
         post_feed(state, f"{intro['partner'] or 'A partner'}'s intro worked: "
                          f"{c['name']} ({c['company']}) -> {outcome} for {intro['portfolio_company']}")
     elif outcome in ("passed", "no_response"):
+        award(state, outcome)   # dead intro: small penalty + a strike
         c["fails"] += 1
         if c["fails"] >= SCRATCH_THRESHOLD and not c["scratched"]:
             c["scratched"] = True
@@ -467,7 +607,12 @@ def analytics(write_html: bool = True) -> dict:
     for i in intros:
         by_partner[i["partner"] or "unassigned"] = by_partner.get(i["partner"] or "unassigned", 0) + 1
     sent = sum(v for k, v in by_status.items() if k not in ("proposed",))
+    _p = agent_profile(state)
     stats = {
+        "agent_trust": {"level": _p["level"], "name": LEVELS[_p["level"]]["name"],
+                        "xp": _p["xp"], "wins": _p["wins"], "strikes": _p["strikes"],
+                        "autonomous_actions": _p["autonomous_actions"],
+                        "routed_to_human": _p["routed_to_human"]},
         "signals_read": len(state.get("signals", [])),
         "needs_detected": len(state.get("needs", [])),
         "needs_resolved": sum(1 for n in state.get("needs", []) if n["status"] == "resolved"),
@@ -504,6 +649,93 @@ def feed() -> None:
         print("Feed is empty. Record an intro outcome to post the first update.")
 
 # --------------------------------------------------------------------------
+# 6. Proactive mode — the agent works without being asked
+# --------------------------------------------------------------------------
+
+def run_cycle() -> None:
+    """One proactive pass. Run it on a loop (`watch`) or on a schedule
+    (cron / the host agent's scheduler). In one pass the agent:
+      1. reads any new portfolio updates dropped in inbox/ (CSV exports
+         from the VC's own mailbox, written by whatever agent hosts this)
+      2. detects new needs and prepares partner action cards for the
+         explicit ones; possible needs get a founder-confirmation draft
+      3. queues follow-up nudges for idle intros — sent autonomously only
+         if the agent's trust level has EARNED that (L2+); otherwise the
+         nudge waits in the outbox for a human's one-tap approval
+      4. writes briefing.md: what needs attention, what it did, what is
+         waiting on a human, and its earned-automation row
+    The agent never waits to be asked, and never exceeds its level."""
+    print(f"--- Proactive cycle {date.today().isoformat()} ---")
+    state = load()
+    p = agent_profile(state)
+    print(f"Agent: L{p['level']} {LEVELS[p['level']]['name']}, XP {p['xp']}")
+    if INBOX.exists():
+        done_dir = INBOX / "processed"
+        for csv_file in sorted(INBOX.glob("*.csv")):
+            ingest_signals(str(csv_file))
+            done_dir.mkdir(exist_ok=True)
+            csv_file.rename(done_dir / csv_file.name)
+            print(f"  processed inbox file {csv_file.name}")
+    detect()
+    state = load()
+    for need in state["needs"]:
+        if need["status"] != "detected":
+            continue
+        if need["certainty"] == "explicit":
+            action(need["id"])   # prepares match + draft, marks actioned
+            state = load()
+            last = state["intros"][-1] if state["intros"] else None
+            if last:
+                queue_outbox(state, "intro_draft",
+                             f"Intro draft for {need['company']} ({need['need']}) ready: {last['id']}",
+                             min_level=1)
+                save(state)
+        else:
+            queue_outbox(state, "founder_confirmation",
+                         confirm_text(need), min_level=1)
+            need["status"] = "confirmation_queued"
+            save(state)
+    # follow-ups for idle intros
+    state = load()
+    today = date.today()
+    nudges = 0
+    for intro in state["intros"]:
+        if intro["status"] in ("customer", "passed"):
+            continue
+        last = date.fromisoformat(intro["last_touch"] or intro["created"])
+        if (today - last).days >= FOLLOWUP_EVERY_DAYS:
+            item = queue_outbox(state, "followup_nudge",
+                                f"Nudge both sides on {intro['id']} "
+                                f"({intro['portfolio_company']}, idle {(today - last).days}d)",
+                                min_level=2)   # autonomy must be earned
+            nudges += 1
+            print(f"  follow-up nudge queued for {intro['id']}: {item['status']}")
+    save(state)
+    # briefing
+    state = load()
+    p = agent_profile(state)
+    open_needs = [n for n in state["needs"] if n["status"] in ("detected", "actioned", "confirmation_queued")]
+    waiting = [o for o in state["outbox"] if o["status"] == "awaiting_human_approval"]
+    lines = [f"# Partner briefing — {date.today().isoformat()}", "",
+             f"Agent trust: L{p['level']} {LEVELS[p['level']]['name']} (XP {p['xp']}, wins {p['wins']})",
+             f"Earned-automation row: {p['autonomous_actions']} actions taken autonomously, "
+             f"{p['routed_to_human']} routed to a human, every one logged.", "",
+             "## Portfolio developments needing attention"]
+    lines += [f"- {n['company']}: {n['need']} [{n['certainty']}, {n['status']}]" for n in open_needs] or ["- none"]
+    lines += ["", "## Waiting on a human"]
+    lines += [f"- [{o['kind']}] {o['text']}" for o in waiting] or ["- nothing"]
+    Path("briefing.md").write_text("\n".join(lines) + "\n")
+    print(f"Briefing written to briefing.md ({len(open_needs)} open needs, "
+          f"{nudges} nudges queued, {len(waiting)} items waiting on a human)")
+
+def watch(interval_minutes: int = 60) -> None:
+    import time
+    print(f"Watching. Proactive cycle every {interval_minutes} min. Ctrl-C to stop.")
+    while True:
+        run_cycle()
+        time.sleep(interval_minutes * 60)
+
+# --------------------------------------------------------------------------
 # Demo seed — runs the whole loop end to end with sample data
 # --------------------------------------------------------------------------
 
@@ -534,6 +766,8 @@ def demo() -> None:
         resolve(explicit["id"], "yes", "yes")
     print("\n--- Follow-ups due (simulated: none idle yet) ---")
     followups()
+    print("\n=== 5. THE REWARD: verified outcomes earned the agent more trust ===")
+    show_agent()
     print("\n--- Analytics ---")
     analytics()
 
@@ -557,6 +791,9 @@ def main() -> None:
     r = sub.add_parser("record"); r.add_argument("--intro", required=True); r.add_argument("--outcome", required=True)
     sub.add_parser("analytics")
     sub.add_parser("feed")
+    sub.add_parser("run")        # one proactive cycle
+    w = sub.add_parser("watch"); w.add_argument("--interval", type=int, default=60)
+    sub.add_parser("agent")      # trust profile: level, XP, unlocks
     a = p.parse_args()
     if a.cmd == "demo": demo()
     elif a.cmd == "signals": ingest_signals(a.csv)
@@ -571,6 +808,9 @@ def main() -> None:
     elif a.cmd == "record": record(a.intro, a.outcome)
     elif a.cmd == "analytics": analytics()
     elif a.cmd == "feed": feed()
+    elif a.cmd == "run": run_cycle()
+    elif a.cmd == "watch": watch(a.interval)
+    elif a.cmd == "agent": show_agent()
 
 if __name__ == "__main__":
     main()

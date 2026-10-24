@@ -61,6 +61,37 @@ assistant they already use). No new platform to learn. *Bring your own agent.*
    Everyone stays updated, and the analytics show which partners and
    which connectors actually produce outcomes.
 
+## It works proactively, and it earns its autonomy
+
+**Proactive by default.** The agent does not wait to be asked. On a loop
+(`watch`) or a schedule (`run`), each cycle it reads new portfolio updates
+dropped in `inbox/`, detects needs, prepares partner action cards, queues
+follow-up nudges for idle intros, and writes a partner briefing
+(`briefing.md`). Everything it wants to send goes through an **outbox**:
+auto-approved only for actions its trust level has earned, otherwise it
+waits for a human's one-tap approval. The script is the brain; the VC's own
+host agent (their Muse or other assistant) is the hands that execute the
+outbox through the connected mailbox, so the script never holds mailbox
+passwords.
+
+**The reward mechanism: a Trust Ladder.** The agent earns XP only for
+*verified* outcomes: a reply (+3), a meeting (+10), a customer (+25), a
+founder confirming a detected need (+5), help marked useful (+15). Dead
+intros cost XP and add a strike; three strikes demote it a level. Levels
+unlock real access:
+
+| Level | Name | Unlocks |
+|---|---|---|
+| L0 | Observer | Read signals, detect needs, report only |
+| L1 | Drafter (start) | Draft intros and confirmations, propose ranked matches |
+| L2 | Coordinator (20 XP, 1 win) | Send follow-up nudges itself, post the firm feed to Slack, hold calendar slots |
+| L3 | Connector (60 XP, 3 wins) | Send the double-opt-in first ask on approved needs, auto-enrich contacts |
+| L4 | Operator (150 XP, 8 wins) | Manage correspondence end to end, book meetings, update the CRM, brief partners unprompted |
+
+In the demo you watch it happen: one meeting and one "useful" resolution
+take the agent from L1 to L2 live. Automation here is *earned*, never
+given, and a human always approves the first intro to anyone.
+
 ## Run it
 
 ```bash
@@ -70,6 +101,9 @@ python3 agent.py detect                            # needs out, each with quoted
 python3 agent.py action --need need_001            # partner action card + intro draft
 python3 agent.py confirm --need need_002           # draft to confirm a possible need
 python3 agent.py resolve --need need_001 --connected yes --useful yes
+python3 agent.py run         # one proactive cycle: inbox, detection, nudges, briefing
+python3 agent.py watch --interval 60   # proactive loop
+python3 agent.py agent       # trust profile: level, XP, what is unlocked, what is next
 python3 agent.py ingest data/contacts.sample.csv
 python3 agent.py match --need "VP Operations at a data center operator" --company Soventify --partner Giulio
 python3 agent.py draft --intro intro_001

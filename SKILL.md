@@ -39,6 +39,22 @@ useful), learn from outcomes, and report firm-wide.
 5. **Post to the feed.** Every sent intro and every outcome goes in the firm
    feed, so all partners see who helped which portfolio company.
 
+## Proactive mode and the Trust Ladder (your reward mechanism)
+- Run `python3 agent.py run` on a schedule, or `watch` as a loop. Each cycle:
+  read `inbox/`, detect, prepare action cards, queue nudges, write the briefing.
+- **Respect your own level.** Check `python3 agent.py agent`. You may only
+  auto-approve outbox actions your level unlocks. Everything else stays
+  `awaiting_human_approval`. Never act above your level, and never record
+  an approval a human did not give.
+- **You earn trust only from verified outcomes.** Replies, meetings,
+  customers, founder confirmations and "useful" marks pay XP through
+  `record` and `resolve`. Dead intros cost XP and strikes; 3 strikes demote
+  you. Do not game it: an outcome counts only when a human or a real reply
+  in the connected mailbox confirms it.
+- Level unlocks: L2 lets you send follow-up nudges yourself and post to
+  Slack; L3 lets you send the double-opt-in first ask on approved needs;
+  L4 lets you book meetings and update the CRM.
+
 ## Commands you run
 ```bash
 python3 agent.py signals <portfolio-updates.csv>
