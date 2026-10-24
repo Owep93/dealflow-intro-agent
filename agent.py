@@ -55,7 +55,7 @@ Usage:
                                                # need with the founder
   python3 agent.py resolve --need need_001 --connected yes --useful yes
   python3 agent.py ingest contacts.csv       # import a CSV / LinkedIn export
-  python3 agent.py match --need "VP Operations at a data center operator"
+  python3 agent.py match --need "VP Operations at a national retail chain"
   python3 agent.py draft  --intro intro_001   # print a double-opt-in draft
   python3 agent.py followups                   # who needs a nudge today
   python3 agent.py record --intro intro_001 --outcome meeting
@@ -226,7 +226,7 @@ class Contact:
     email: str = ""
     company: str = ""
     role: str = ""
-    topics: list = field(default_factory=list)   # e.g. ["data centers", "ops"]
+    topics: list = field(default_factory=list)   # e.g. ["retail", "ops"]
     strength: int = 3                            # 1 weak .. 5 close
     source: str = ""                             # email | linkedin | manual
     owner_partner: str = ""                      # which partner knows them
@@ -753,10 +753,10 @@ def demo() -> None:
         action(explicit["id"])
     print("\n=== 3. THE ORIGINAL ASK FLOW: a portfolio company asks directly ===")
     before = len(load()["intros"])
-    match("Intro to a VP Operations at a data center operator about cutting energy cost",
-          portfolio_company="Soventify", partner="Giulio")
-    match("Intro to a head of facilities at a hospital group about uptime",
-          portfolio_company="Soventify", partner="Giulio")
+    match("Intro to a VP Operations at a national retail chain about a delivery partnership pilot",
+          portfolio_company="RouteWise", partner="Giulio")
+    match("Intro to a VP Supply Chain at a national retailer about reducing delivery churn",
+          portfolio_company="BrightCart", partner="Giulio")
     if len(load()["intros"]) > before:
         top_pick = load()["intros"][before]  # top-ranked intro of the ask flow
         draft(top_pick["id"])

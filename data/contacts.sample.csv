@@ -1,13 +1,13 @@
 name,email,company,role,topics,strength,source,owner_partner
-Nancy Coblenz,nancy@example.com,Stellenium,President,behind-the-meter power|data centers|energy,4,linkedin,Giulio
-Chad Tramonte,chad@example.com,DC Operations Group,Data Center Operator,data centers|operations|facilities,3,linkedin,Giulio
-Sarah Kim,sarah@example.com,CoreSite,VP Operations,data centers|operations|uptime,5,email,Giulio
+Rachel Donovan,rachel@example.com,Meridian Retail Group,VP Store Operations,retail|store operations|expansion,4,linkedin,Giulio
+David Chen,david@example.com,Brightline Logistics,VP Operations,logistics|operations|warehouses,3,linkedin,Giulio
+Sarah Kim,sarah@example.com,Northgate Retail,VP Operations,retail|operations|expansion,5,email,Giulio
 Marcus Lee,marcus@example.com,General Hospital Group,Head of Facilities,facilities|uptime|hospitals,4,email,Partner B
 Priya Nair,priya@example.com,RetailCo,VP Supply Chain,retail|logistics|operations,3,linkedin,Partner B
-Tom Becker,tom@example.com,CloudScale,CTO,cloud|infrastructure|data centers,2,email,Giulio
+Tom Becker,tom@example.com,CloudScale,CTO,cloud|infrastructure|saas,2,email,Giulio
 Elena Rossi,elena@example.com,Hotel Group Roma,Director of Engineering,hotels|facilities|energy,3,linkedin,Partner C
-James Wright,james@example.com,LogiPort,COO,logistics|warehouses|energy cost,4,email,Partner B
+James Wright,james@example.com,LogiPort,COO,logistics|warehouses|supply chain,4,email,Partner B
 Dana Whitfield,dana@example.com,National Retail Partners,VP Distribution,distribution|distributor selection|retail partnerships|expansion,5,email,Giulio
 Omar Farouk,omar@example.com,Southeast Logistics Group,Director of Distribution,distribution|logistics|southeast,4,linkedin,Partner B
 Dead End Dan,dan@example.com,OldCo,Manager,operations,2,email,Giulio
-Busy Beth,beth@example.com,BigCorp,VP Operations,operations|data centers,2,linkedin,Partner C
+Busy Beth,beth@example.com,BigCorp,VP Operations,operations|procurement,2,linkedin,Partner C

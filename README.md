@@ -57,7 +57,7 @@ assistant they already use). No new platform to learn. *Bring your own agent.*
    **scratched** from future lists.
 6. **Firm network effect** — multiple partners at the firm can be invited
    in. Every intro and outcome posts to one firm feed (or drops into
-   Slack): *"Giulio made an intro for Soventify — it became a meeting."*
+   Slack): *"Giulio made an intro for Northwind Robotics — it became a meeting."*
    Everyone stays updated, and the analytics show which partners and
    which connectors actually produce outcomes.
 
@@ -105,7 +105,7 @@ python3 agent.py run         # one proactive cycle: inbox, detection, nudges, br
 python3 agent.py watch --interval 60   # proactive loop
 python3 agent.py agent       # trust profile: level, XP, what is unlocked, what is next
 python3 agent.py ingest data/contacts.sample.csv
-python3 agent.py match --need "VP Operations at a data center operator" --company Soventify --partner Giulio
+python3 agent.py match --need "VP Operations at a national retail chain" --company RouteWise --partner Giulio
 python3 agent.py draft --intro intro_001
 python3 agent.py followups
 python3 agent.py record --intro intro_001 --outcome meeting
