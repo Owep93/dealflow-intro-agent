@@ -220,6 +220,7 @@ Run `python3 agent.py akta` for status, `python3 agent.py enrich --company "Nort
 ## Run it
 
 ```bash
+npm start            # serves the demo page (index.html) at http://localhost:3000
 python3 agent.py demo        # full loop with sample data
 python3 agent.py signals data/signals.sample.csv   # scattered portfolio updates in
 python3 agent.py detect                            # needs out, each with quoted evidence

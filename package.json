@@ -1,0 +1,1 @@
+{"description":"Introloop: the portfolio-intelligence intro agent for venture funds (Scout, Atlas, Bridge, Echo). This package serves the demo site; the agent itself is agent.py (Python 3, standard library only).","engines":{"node":">=18"},"name":"introloop","private":true,"scripts":{"demo":"python3 agent.py demo","start":"node server.js"},"version":"1.0.0"}
