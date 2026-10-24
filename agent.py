@@ -425,6 +425,7 @@ def action(need_id: str) -> None:
     print("Why now (evidence):")
     for e in need["evidence"]:
         print(f"  - ({e['source']}, {e['date']}) \"{e['quote']}\"")
+    print_enrichment(need["company"], "portfolio company")
     if need["certainty"] == "possible":
         print("\nThis is a POSSIBLE need. Confirm with the founder first:")
         print(confirm_text(need))
@@ -441,6 +442,7 @@ def action(need_id: str) -> None:
     reach = best.get("channel") or (best.get("socials") or ["email"])[0].split(":")[0]
     handles = ", ".join(best.get("socials") or []) or "email on file"
     print(f"Best reached via: {reach} ({handles}) — the ask goes out on that channel, not a cold email")
+    print_enrichment(best["company"], "intro target's company")
     iid = f"intro_{len(state['intros']) + 1:03d}"
     state["intros"].append(asdict(Intro(
         id=iid, need=need["need"], portfolio_company=need["company"],
@@ -690,6 +692,90 @@ def feed() -> None:
         print("Feed is empty. Record an intro outcome to post the first update.")
 
 # --------------------------------------------------------------------------
+# Sponsor integration: Akta.pro (by Wokelo AI) — the data layer
+#
+# Akta is a private company data + signals API built for agents: 20M+
+# private companies, 70+ data points per company, entity-resolved news,
+# and alternative signals (job posts, headcount, traffic, reviews).
+# We use it for the two things our own data cannot do:
+#   1. SIGNALS: a watchlist over every portfolio company streams Akta
+#      signals (hiring spikes, launches, funding) into need detection.
+#   2. ENRICHMENT: every action card carries Akta firmographics and
+#      recent signals for BOTH the portfolio company and the intro
+#      target's company, so "why this person, why now" is evidenced
+#      with market data, not just the fund's own notes.
+# Access: AKTA_API_KEY in the environment (or the Akta MCP via the host
+# agent). Without a key, the agent reads data/akta.sample.json, a cache
+# in the Akta response shape. Enrichment is never invented: no Akta
+# record, no enrichment block.
+# --------------------------------------------------------------------------
+
+import os
+import urllib.request
+import urllib.parse
+
+AKTA_CACHE = Path(__file__).with_name("data") / "akta.sample.json"
+
+def akta_cache() -> dict:
+    if AKTA_CACHE.exists():
+        return json.loads(AKTA_CACHE.read_text())
+    return {"companies": {}, "watchlist_signals": []}
+
+def akta_enrich(name: str) -> dict | None:
+    key = os.environ.get("AKTA_API_KEY")
+    if key:
+        base = os.environ.get("AKTA_API_BASE", "https://api.akta.pro/v1")
+        try:
+            req = urllib.request.Request(
+                f"{base}/companies/search?{urllib.parse.urlencode({'name': name})}",
+                headers={"Authorization": f"Bearer {key}"})
+            with urllib.request.urlopen(req, timeout=8) as r:
+                data = json.loads(r.read())
+            results = data.get("companies") or data.get("results") or []
+            if results:
+                return results[0]
+        except Exception as e:
+            print(f"  [akta] live lookup failed ({e}); falling back to cache")
+    companies = akta_cache().get("companies", {})
+    if name in companies:
+        return companies[name]
+    for k, v in companies.items():
+        if k.lower() in name.lower() or name.lower() in k.lower():
+            return v
+    return None
+
+def print_enrichment(name: str, label: str) -> None:
+    e = akta_enrich(name)
+    if not e:
+        return
+    print(f"Akta enrichment ({label}: {name}): {e.get('sector', '')}, "
+          f"{e.get('employees', '?')} employees, HQ {e.get('hq', '?')}, {e.get('funding', '')}")
+    for s in e.get("signals", [])[:2]:
+        print(f"   akta signal [{s.get('type', '')}]: {s.get('text', '')}")
+
+def akta_import_signals() -> int:
+    state = load()
+    known = {s["text"] for s in state["signals"]}
+    added = 0
+    for s in akta_cache().get("watchlist_signals", []):
+        if s["text"] in known:
+            continue
+        state["signals"].append(asdict(Signal(
+            id=f"sig_{len(state['signals']) + 1:03d}", company=s["company"],
+            source=s["source"], date=s["date"], text=s["text"])))
+        added += 1
+    save(state)
+    print(f"Akta watchlist: imported {added} new signal(s) for portfolio companies.")
+    return added
+
+def akta_status() -> None:
+    key = "set (live API)" if os.environ.get("AKTA_API_KEY") else "not set (using sample cache)"
+    cache = akta_cache()
+    print(f"Akta.pro: API key {key}; cached companies: {len(cache.get('companies', {}))}; "
+          f"watchlist signals: {len(cache.get('watchlist_signals', []))}")
+    akta_import_signals()
+
+# --------------------------------------------------------------------------
 # 6. Proactive mode — the agent works without being asked
 # --------------------------------------------------------------------------
 
@@ -717,6 +803,7 @@ def run_cycle() -> None:
             done_dir.mkdir(exist_ok=True)
             csv_file.rename(done_dir / csv_file.name)
             print(f"  processed inbox file {csv_file.name}")
+    akta_import_signals()
     detect()
     state = load()
     for need in state["needs"]:
@@ -784,6 +871,7 @@ def demo() -> None:
     STORE.unlink(missing_ok=True)
     print("=== 1. PORTFOLIO INTELLIGENCE: scattered updates -> detected needs ===")
     ingest_signals(str(Path(__file__).with_name("data") / "signals.sample.csv"))
+    akta_import_signals()
     detect()
     ingest_csv(str(Path(__file__).with_name("data") / "contacts.sample.csv"))
     print("\n=== 2. PARTNER ACTION CARD (demo leads with the development, "
@@ -836,6 +924,8 @@ def main() -> None:
     w = sub.add_parser("watch"); w.add_argument("--interval", type=int, default=60)
     sub.add_parser("agent")      # trust profile: level, XP, unlocks
     sub.add_parser("connectors") # every channel the agent works across
+    sub.add_parser("akta")       # Akta.pro status + import watchlist signals
+    en = sub.add_parser("enrich"); en.add_argument("--company", required=True)
     a = p.parse_args()
     if a.cmd == "demo": demo()
     elif a.cmd == "signals": ingest_signals(a.csv)
@@ -854,6 +944,12 @@ def main() -> None:
     elif a.cmd == "watch": watch(a.interval)
     elif a.cmd == "agent": show_agent()
     elif a.cmd == "connectors": connectors()
+    elif a.cmd == "akta": akta_status()
+    elif a.cmd == "enrich":
+        if akta_enrich(a.company):
+            print_enrichment(a.company, "company")
+        else:
+            print("No Akta record for that company.")
 
 if __name__ == "__main__":
     main()

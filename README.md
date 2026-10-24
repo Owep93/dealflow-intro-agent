@@ -121,6 +121,29 @@ action card says so: the ask goes out where that person actually answers,
 not as another cold email. Founder posts are signals too: a launch post on
 LinkedIn or a raise teased on X feeds the same need detection as an email.
 
+## Sponsor integration: Akta.pro, our data layer
+
+[Akta.pro](https://akta.pro) (by Wokelo AI) is a private company data and
+signals API built for agents: 20M+ private companies, 70+ data points per
+company, entity-resolved news, and alternative signals like job posts,
+headcount trends and reviews. We use it for the two things a fund's own
+notes cannot do:
+
+1. **Portfolio watchlist signals.** Akta watches every portfolio company
+   and streams signals (a hiring spike in distribution roles, a launch, a
+   raise) into the agent's need detection. In the demo, an Akta jobs
+   signal corroborates Northwind Robotics' distributor need.
+2. **Enrichment on every action card.** Each card carries Akta
+   firmographics and recent signals for the portfolio company *and* the
+   intro target's company, so "why this person, why now" is evidenced
+   with live market data, not gut feel.
+
+Set `AKTA_API_KEY` and the agent calls the live Akta API (the Akta MCP
+works too, through the host agent). Without a key it reads
+`data/akta.sample.json`, a cache in the Akta response shape. Enrichment is
+never invented: no Akta record, no enrichment block.
+Run `python3 agent.py akta` for status, `python3 agent.py enrich --company "Northwind Robotics"` to test it.
+
 ## Run it
 
 ```bash

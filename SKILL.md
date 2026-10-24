@@ -55,6 +55,16 @@ useful), learn from outcomes, and report firm-wide.
   Slack; L3 lets you send the double-opt-in first ask on approved needs;
   L4 lets you book meetings and update the CRM.
 
+## Akta.pro (sponsor data layer)
+- Use Akta for what the fund's own data cannot tell you: portfolio
+  watchlist signals (job posts, headcount, launches, funding) and company
+  enrichment on action cards.
+- If you have the Akta MCP or an `AKTA_API_KEY`, fetch live and refresh
+  `data/akta.sample.json`. Otherwise read the cache. NEVER invent
+  firmographics or signals: no Akta record means no enrichment block.
+- Run `python3 agent.py akta` at the start of a proactive cycle; it
+  imports fresh watchlist signals before detection.
+
 ## Commands you run
 ```bash
 python3 agent.py signals <portfolio-updates.csv>
